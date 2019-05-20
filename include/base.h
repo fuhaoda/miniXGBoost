@@ -22,13 +22,90 @@ namespace xgboost {
     /*! \brief Implementation of gradient statistics pair. Template specialisation
     * may be used to overload different gradients types e.g. low precision, high
     * precision, integer, floating point. */
-    class A{
+    template <typename T>
+    class GradientPairInternal{
+
     public:
-      int a;
-      int b;
-      int add(int, int);
+      //constructor
+      GradientPairInternal(): grad_(0), hess_(0){}
+      GradientPairInternal(float grad, float hess):grad_(grad), hess_(hess){}
+      //copy constructor
+      GradientPairInternal(const GradientPairInternal<T> & gpair):grad_(gpair.grad_), hess_(gpair.hess_){}
+
+      void setGrad(float grad) {grad_=grad;}
+      void setHess(float hess) {hess_=hess;}
+      float getGrad() const{ return grad_;}
+      float getHess() const{return hess_;}
+
+
+      //define operator += and -=. This operation is preferred with the original copy is not needed.
+      GradientPairInternal<T> &operator+=(const GradientPairInternal<T> & rhs){
+        grad_+=rhs.grad_;
+        hess_+=rhs.hess_;
+        return *this;
+      }
+
+      GradientPairInternal<T> &operator-=(const GradientPairInternal<T> & rhs){
+        grad_-=rhs.grad_;
+        hess_-=rhs.hess_;
+        return *this;
+      }
+
+      //define operator + and -. This is used when we need to assign the results to a new gradient pair.
+      GradientPairInternal<T> &operator+(const GradientPairInternal<T> & rhs){
+        GradientPairInternal<T> gpair;
+        gpair.grad_=grad_+rhs.grad_;
+        gpair.hess_=hess_+rhs.hess_;
+        return gpair;
+      }
+
+
+
+      GradientPairInternal<T> &operator-(const GradientPairInternal<T> & rhs){
+        GradientPairInternal<T> gpair;
+        gpair.grad_=grad_-rhs.grad_;
+        gpair.hess_=hess_-rhs.hess_;
+        return gpair;
+      }
+
+    private:
+      /*! \brief gradient statistics */
+      T grad_;
+      /*! \brief second order gradient statistics */
+      T hess_;
+
     };
 
+  }// namespace detail
+  /*! \brief gradient statistics pair usually needed in gradient boosting */
+  using GradientPair = detail::GradientPairInternal<float>;
+
+  /*! \brief High precision gradient statistics pair */
+  using GradientPairPrecise = detail::GradientPairInternal<double>;
+
+  //utils
+  namespace utils{
+
+    inline void error(const std::string & msg){
+      fprintf(stderr, "Error: %s\n", msg.c_str());
+      exit(-1);
+    }
+
+    inline void assert(bool exp){
+    if(!exp) error("Assert Error!");
   }
+
+  inline void assert(bool exp, const std::string & msg){
+      if (!exp) error(msg);
+  }
+
+  inline void warning(const std::string & msg){
+    fprintf(stderr, "Warning: %s \n", msg.c_str());
+  }
+
+
+
 }
+} //namespace xgboost
+
 #endif //MINXGBOOST_BASE_H
