@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <vector>
+#include <data.h>
+#include <loadData.h>
 #include "base.h"
 #include "./config.h"
 using namespace std;
@@ -17,14 +19,10 @@ namespace xgboost{
       return 0;
     }
 
+    //load configuration parameters
     common::ConfigParse cp(argv[1]);
     auto cfg=cp.parse();
     cfg.emplace_back("seed", "0");
-
-    for(auto const &item : cfg){
-      cout << item.first <<"=" << item.second << "!" <<endl;
-    }
-
 
 
     for (int i = 2; i < argc; ++i) {
@@ -34,7 +32,11 @@ namespace xgboost{
       }
     }
 
-
+    //load data
+    data::SimpleSparseMatrix spMatrix;
+    std::vector<float> y;
+    data::LoadData dataLoader(spMatrix,y);
+    dataLoader.loadLibSVM("/Users/haodafu/Documents/CodeDev/miniXGBoost/cmake-build-debug/demo/machine.txt.train");
 
     return 0;
   }

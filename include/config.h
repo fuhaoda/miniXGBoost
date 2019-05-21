@@ -2,22 +2,20 @@
 // Created by Haoda Fu on 2019-05-19.
 //
 
-#ifndef MINXGBOOST_CONFIG_H
-#define MINXGBOOST_CONFIG_H
+#ifndef MINIXGBOOST_CONFIG_H
+#define MINIXGBOOST_CONFIG_H
 
 #include <iostream>
-#include <istream>
 #include <fstream>
-#include <string>
-
 #include "base.h"
+
 namespace xgboost{
 namespace common{
   class ConfigParse{
     public:
       ConfigParse(const std::string & cfgFileName){
         fi_.open(cfgFileName);
-        xgboost::utils::assert(!fi_.fail(),"Cannot open configuration file!");
+        utils::myassert(!fi_.fail(),"Cannot open configuration file!");
       }
 
       std::vector<std::pair<std::string, std::string> > parse(){
@@ -59,4 +57,4 @@ namespace common{
     };
 }
 } //namespace xgboost
-#endif //MINXGBOOST_CONFIG_H
+#endif //MINIXGBOOST_CONFIG_H

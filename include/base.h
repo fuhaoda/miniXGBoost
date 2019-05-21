@@ -91,11 +91,11 @@ namespace xgboost {
       exit(-1);
     }
 
-    inline void assert(bool exp){
+    inline void myassert(bool exp){
     if(!exp) error("Assert Error!");
   }
 
-  inline void assert(bool exp, const std::string & msg){
+  inline void myassert(bool exp, const std::string & msg){
       if (!exp) error(msg);
   }
 
@@ -103,9 +103,10 @@ namespace xgboost {
     fprintf(stderr, "Warning: %s \n", msg.c_str());
   }
 
-
-
-}
+  inline void warning(bool exp, const std::string & msg){
+      if(exp) fprintf(stderr, "Warning: %s \n", msg.c_str());
+    }
+  } //namespace utils
 } //namespace xgboost
 
 #endif //MINXGBOOST_BASE_H
