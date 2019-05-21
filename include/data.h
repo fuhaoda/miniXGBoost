@@ -32,10 +32,9 @@ namespace xgboost{
 
     class SimpleSparseMatrix{
     public:
-      SimpleSparseMatrix(){
-        clear();
-      }
+      SimpleSparseMatrix(){ clear(); }
 
+      inline void clear();
       /*!
       * \brief add a row to the matrix, with data stored in STL container
       * \param findex feature index
@@ -44,14 +43,12 @@ namespace xgboost{
       */
       size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
 
-      inline void clear( void ){
-        row_ptr_.clear();
-        row_ptr_.push_back( 0 );
-        row_data_.clear();
-        col_ptr_.clear();
-        col_data_.clear();
-      }
+      void loadLibSVM(const std::string & dataFileName);
+      void loadCSV(const std::string & dataFileName);
+
     private:
+
+      std::vector<float> y_;
       //for row major sparse matrix
       std::vector<size_t>  row_ptr_;
       std::vector<Entry>  row_data_;

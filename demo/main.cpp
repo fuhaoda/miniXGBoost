@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 #include <data.h>
-#include <loadData.h>
 #include "base.h"
 #include "./config.h"
 using namespace std;
@@ -34,9 +33,7 @@ namespace xgboost{
 
     //load data
     data::SimpleSparseMatrix spMatrix;
-    std::vector<float> y;
-    data::LoadData dataLoader(spMatrix,y);
-    dataLoader.loadLibSVM("/Users/haodafu/Documents/CodeDev/miniXGBoost/cmake-build-debug/demo/machine.txt.train");
+    spMatrix.loadLibSVM("./machine.txt.train");
 
     return 0;
   }
