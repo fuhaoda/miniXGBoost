@@ -16,7 +16,7 @@ namespace common{
     public:
       ConfigParse(const std::string & cfgFileName){
         fi_.open(cfgFileName);
-        utils::myassert(!fi_.fail(),"Cannot open configuration file!");
+        utils::myAssert(!fi_.fail(),"Cannot open configuration file!");
       }
 
       std::vector<std::pair<std::string, std::string> > parse(){

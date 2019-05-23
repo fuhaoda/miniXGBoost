@@ -34,6 +34,7 @@ namespace xgboost{
     //load data
     data::SimpleSparseMatrix spMatrix;
     spMatrix.loadLibSVM("./machine.txt.train");
+    spMatrix.translateToCSCFormat();
 
     return 0;
   }

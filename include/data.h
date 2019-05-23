@@ -27,6 +27,10 @@ namespace xgboost{
       inline static bool cmp_fvalue( const Entry &a, const Entry &b ){
         return a.fvalue < b.fvalue;
       }
+
+      inline static bool cmp_findex(const Entry &a, const Entry &b){
+        return a.findex < b.findex;
+      }
     }; //class Entry
 
 
@@ -34,17 +38,32 @@ namespace xgboost{
     public:
       SimpleSparseMatrix(){ clear(); }
 
-      inline void clear();
+      void clear();
       /*!
       * \brief add a row to the matrix, with data stored in STL container
       * \param findex feature index
       * \param fvalue feature value
       * \return the row id added line
       */
-      size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
-
+      //load data
       void loadLibSVM(const std::string & dataFileName);
       void loadCSV(const std::string & dataFileName);
+
+      //overall
+      inline size_t numOfEntry() const;
+
+      //row operations
+      size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
+
+      class RowIter;
+      size_t numOfRow() const;
+      RowIter getARow(size_t rowIndex) const; //RowIter is left open and right closed.
+
+      //column operations
+      void translateToCSCFormat(); //call this function after load data
+      size_t numOfCol() const;
+      class ColIter;
+
 
     private:
 
@@ -56,6 +75,8 @@ namespace xgboost{
       //for column major sparse matrix
       std::vector<size_t>  col_ptr_;
       std::vector<Entry>  col_data_;
+
+      bool colAccess{false};
     }; //class SimpleSparseMatrix
 
   } //namespace data

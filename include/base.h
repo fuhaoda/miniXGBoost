@@ -91,11 +91,11 @@ namespace xgboost {
       exit(-1);
     }
 
-    inline void myassert(bool exp){
+    inline void myAssert(bool exp){
     if(!exp) error("Assert Error!");
   }
 
-  inline void myassert(bool exp, const std::string & msg){
+  inline void myAssert(bool exp, const std::string & msg){
       if (!exp) error(msg);
   }
 
