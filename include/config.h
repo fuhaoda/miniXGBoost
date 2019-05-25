@@ -14,7 +14,7 @@ namespace xgboost{
 namespace common{
   class ConfigParse{
     public:
-      ConfigParse(const std::string & cfgFileName){
+      explicit ConfigParse(const std::string & cfgFileName){
         fi_.open(cfgFileName);
         utils::myAssert(!fi_.fail(),"Cannot open configuration file!");
       }
@@ -49,7 +49,7 @@ namespace common{
 
     private:
       std::ifstream fi_;
-      std::string allowableChar="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.";
+      std::string allowableChar="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_./";
       void cleanString(std::string & str){
         size_t firstIndx = str.find_first_of(allowableChar);
         size_t lastIndx = str.find_last_of(allowableChar);

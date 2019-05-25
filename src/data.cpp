@@ -47,7 +47,7 @@ void xgboost::data::SimpleSparseMatrix::loadLibSVM(const std::string &dataFileNa
     fvalue.clear();
     getline(dFile, line); //read a line from data file
     std::stringstream ssLine(line);
-
+    //todo: if the last line contains only \n. It may add a new empty  record.
     bool label = true;
     while (!ssLine.eof()) {
       getline(ssLine, temp, ' ');
@@ -73,14 +73,20 @@ size_t xgboost::data::SimpleSparseMatrix::numOfRow() const {
 
 class xgboost::data::SimpleSparseMatrix::RowIter{
 public:
-  RowIter(const xgboost::data::Entry * dprt, const xgboost::data::Entry * end):dprt_(dprt), end_(end){}
-  bool next(){
-    if(dprt_==end_) return false;
-    else{
-      ++dprt_;
-      return true;
-    }
+  RowIter(const xgboost::data::Entry * begin, const xgboost::data::Entry * end):dprt_(begin), begin_(begin), end_(end){}
+
+  bool operator==(const xgboost::data::Entry * rhs){
+    return dprt_==rhs;
   }
+
+  bool operator!=(const xgboost::data::Entry * rhs){
+    return dprt_!=rhs;
+  }
+
+  const xgboost::data::Entry * operator++(){
+    return ++dprt_;
+  }
+
   size_t findex() const{
     return dprt_->findex;
   }
@@ -88,8 +94,16 @@ public:
     return dprt_->fvalue;
   }
 
-public:
-  const xgboost::data::Entry * dprt_, * end_;
+  const xgboost::data::Entry * begin(){
+    return begin_;
+  }
+
+  const xgboost::data::Entry * end(){
+    return end_;
+  }
+
+private:
+  const xgboost::data::Entry * dprt_, * begin_, * end_;
 };
 
 
@@ -103,7 +117,7 @@ size_t xgboost::data::SimpleSparseMatrix::numOfEntry() const {
 
 xgboost::data::SimpleSparseMatrix::RowIter xgboost::data::SimpleSparseMatrix::getARow(size_t rowIndex) const {
   utils::myAssert( rowIndex < numOfRow(), "row id exceed bound" );
-  return RowIter( &row_data_[ row_ptr_[rowIndex] ] - 1, &row_data_[ row_ptr_[rowIndex+1] ] - 1 );
+  return RowIter( &row_data_[ row_ptr_[rowIndex] ], &row_data_[ row_ptr_[rowIndex+1] ]);
 }
 
 void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
@@ -121,7 +135,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
 
   //count how many elements in each column
   for( size_t i = 0; i < numOfRow(); i ++ ){
-    for( RowIter it = getARow(i); it.next(); ){
+    for( RowIter it = getARow(i); it!=it.end(); ++it){
       col_ptr_[it.findex()+1]+=1;
     }
   }
@@ -135,7 +149,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
 
   //go through data again to push items in
   for( size_t i = 0; i < numOfRow(); i ++ ){
-    for( RowIter it = getARow(i); it.next(); ){
+    for( RowIter it = getARow(i); it!=it.end(); ++it){
       col_data_[col_ptr_[it.findex()+1]++]=Entry(i,it.fvalue());
     }
   }
@@ -150,4 +164,8 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
 size_t xgboost::data::SimpleSparseMatrix::numOfCol() const {
   utils::myAssert(colAccess,"No CSC format matrix. Convert the matrix to CSC format first");
   return col_ptr_.size() - 1;
+}
+
+size_t xgboost::data::SimpleSparseMatrix::sampleSize() const {
+  return y_.size();
 }

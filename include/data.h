@@ -16,11 +16,11 @@ namespace xgboost{
      */
     class Entry{
     public:
-      size_t findex; //feature index
-      float fvalue; //feature value
+      size_t findex{}; //feature index
+      float fvalue{}; //feature value
 
       //constructors
-      Entry(){}
+      Entry()= default;
       Entry(size_t findex, float fvalue) : findex(findex), fvalue(fvalue){}
 
       /*! \brief compare fvalue for sorting the entry in a vector */
@@ -51,6 +51,7 @@ namespace xgboost{
 
       //overall
       inline size_t numOfEntry() const;
+      size_t sampleSize() const;
 
       //row operations
       size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
