@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <numeric>
 
 #include "data.h"
 #include "base.h"
@@ -108,7 +109,8 @@ private:
 
 
 class xgboost::data::SimpleSparseMatrix::ColIter : public xgboost::data::SimpleSparseMatrix::RowIter{
-  ColIter(const xgboost::data::Entry *dprt, const xgboost::data::Entry * end):RowIter(dprt,end){}
+public:
+  ColIter(const xgboost::data::Entry *begin, const xgboost::data::Entry * end):RowIter(begin,end){}
 };
 
 size_t xgboost::data::SimpleSparseMatrix::numOfEntry() const {
@@ -148,7 +150,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
   }
 
   //go through data again to push items in
-  for( size_t i = 0; i < numOfRow(); i ++ ){
+  for( size_t i = 0; i < numOfRow();  ++i ){
     for( RowIter it = getARow(i); it!=it.end(); ++it){
       col_data_[col_ptr_[it.findex()+1]++]=Entry(i,it.fvalue());
     }
@@ -156,7 +158,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
   colAccess=true;
 
   // sort columns
-  for( unsigned i = 0; i < numOfCol(); i ++ ){
+  for( unsigned i = 0; i < numOfCol();  ++i ){
     std::sort( &col_data_[ col_ptr_[ i ] ], &col_data_[ col_ptr_[ i+1 ] ], Entry::cmp_fvalue);
   }
 }
@@ -168,4 +170,17 @@ size_t xgboost::data::SimpleSparseMatrix::numOfCol() const {
 
 size_t xgboost::data::SimpleSparseMatrix::sampleSize() const {
   return y_.size();
+}
+
+xgboost::data::SimpleSparseMatrix::ColIter xgboost::data::SimpleSparseMatrix::getACol(size_t colIndex) const {
+  utils::myAssert( colIndex < numOfCol(), "Column id exceed bound" );
+  return ColIter( &col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
+}
+
+const float xgboost::data::SimpleSparseMatrix::overallResponseMean() const {
+  return std::accumulate(y_.cbegin(),y_.cend(),0)/y_.size();
+}
+
+const std::vector<float> &xgboost::data::SimpleSparseMatrix::getY() const {
+  return y_;
 }

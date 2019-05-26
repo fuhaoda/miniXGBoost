@@ -52,6 +52,8 @@ namespace xgboost{
       //overall
       inline size_t numOfEntry() const;
       size_t sampleSize() const;
+      const float overallResponseMean() const;
+      const std::vector<float> & getY() const;
 
       //row operations
       size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
@@ -64,6 +66,7 @@ namespace xgboost{
       void translateToCSCFormat(); //call this function after load data
       size_t numOfCol() const;
       class ColIter;
+      ColIter getACol(size_t colIndex) const;
 
 
     private:
