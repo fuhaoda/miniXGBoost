@@ -55,8 +55,10 @@ void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
   }
 
   // set all the rest expanding nodes to leaf
-  for( size_t i = 0; i < qexpand_.size(); ++ i ){
+  for(const auto nodeID: qexpand_){
+    setLeaf(nodeID, newGBTree_.at(nodeID));
   }
+
   // start prunning the tree
   doPrune();
 }
@@ -160,8 +162,8 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter, size_t feat
         if(csum_hess >= param_.min_child_weight){
           const float csum_grad = e.sumGrad-e.sumSomeGrad;
           const float loss_chg = e.getSomeGain(e.sumSomeGrad, e.sumSomeHess, param_.reg_lambda)
-                                 +e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
-                                 - e.gain;
+              +e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
+              - e.gain;
           e.updateBest(loss_chg,featureID,(fvalue+e.lastSplitValue)*0.5f, missingGoToRight, param_.split_eps);
         }
       }
@@ -173,7 +175,7 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter, size_t feat
 
 }
 
-void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID,TreeNode &e) {
+void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID,TreeNode & e) {
   numOfNodes = newGBTree_.size();
   newGBTree_.emplace_back();
   newGBTree_.emplace_back();
@@ -181,6 +183,7 @@ void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID,TreeNode &e) 
   e.rightChild =numOfNodes+1;
   newGBTree_.at(e.rightChild).parent=nodeID;
   newGBTree_.at(e.leftChild).parent=nodeID;
+  numOfNodes+=2;
 }
 
 void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID, TreeNode &e) {
@@ -191,8 +194,7 @@ void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID, TreeNode &e) {
 }
 
 void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
-
-  //reset position
+  // reset position
   for(size_t i=0;i<traingData_.sampleSize();++i){
     const int nid=position_.at(i);
     TreeNode & e = newGBTree_.at(nid);
@@ -200,9 +202,45 @@ void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
     if(e.isLeaf){
       position_.at(i)=-1;
     } else {
-      //set missing data to the correct position, correct others later
+      // set missing data to the correct position, correct others later
       position_.at(i)= e.missingGoToRight? e.rightChild:e.leftChild;
     }
   }
 
+  // classsify the non-default data into right position
+
+  std::vector<size_t> featureSplits{};
+  for(const auto nodeID:qexpand_){
+    if(!newGBTree_.at(nodeID).isLeaf) featureSplits.push_back(newGBTree_.at(nodeID).splitIndex);
+  }
+  std::sort(featureSplits.begin(),featureSplits.end());
+  featureSplits.erase(std::unique(featureSplits.begin(),featureSplits.end()),featureSplits.end());
+
+  for(const auto featureID: featureSplits){
+    for(auto iter=traingData_.getACol(featureID);iter!=iter.last();++iter){
+      const auto rowID = iter.getItem().findex;
+      int nodeID = position_.at(rowID);
+      if(nodeID<0) continue;
+      nodeID=newGBTree_.at(nodeID).parent;
+      if(newGBTree_.at(nodeID).splitIndex==featureID){
+        if(iter.getItem().fvalue<newGBTree_.at(nodeID).splitValue){
+          position_.at(rowID)=newGBTree_.at(nodeID).leftChild;
+        } else {
+          position_.at(rowID)=newGBTree_.at(nodeID).rightChild;
+        }
+      }
+    }
+  }
+
+}
+void xgboost::tree::GBSingleTreeGenerator::updateQueueExpand() {
+  std::vector<size_t> newNodes{};
+  for(const auto nodeID: qexpand_){
+    const auto & e = newGBTree_.at(nodeID);
+    if(!e.isLeaf){
+      newNodes.push_back(e.leftChild);
+      newNodes.push_back(e.rightChild);
+    }
+  }
+  qexpand_=newNodes;
 }
