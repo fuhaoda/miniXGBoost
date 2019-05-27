@@ -26,13 +26,13 @@ namespace xgboost{
       void calWeight(float lambda);
       void calGain(float lambda);
 
-      bool isLeaf{true};
+      bool isLeaf{false}; //this is important default setting
 
       // split values. Only valid for a parent node.
       float sumSomeGrad{0};
       float sumSomeHess{0};
       float getSomeGain(float sumG, float sumH, float lambda);
-      bool updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight);
+      bool updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight, float eps);
       size_t splitIndex{0};
       float splitValue{0};
       float lastSplitValue{std::numeric_limits<float>::min()};
@@ -46,8 +46,8 @@ namespace xgboost{
     class GBTreeModel{
     public:
       void training(const data::SimpleSparseMatrix & traingData, const parameters::ModelParam & param);
-      void testing(const data::SimpleSparseMatrix & testingData);
-      std::vector<float> predicting(const data::SimpleSparseMatrix & featureData); //no response of y
+    //  void testing(const data::SimpleSparseMatrix & testingData);
+    //  std::vector<float> predicting(const data::SimpleSparseMatrix & featureData); //no response of y
 
     private:
       std::vector<std::vector<TreeNode>> GBRegModel;
@@ -63,7 +63,7 @@ namespace xgboost{
     public:
       GBSingleTreeGenerator(const xgboost::data::SimpleSparseMatrix &traingData, std::vector<TreeNode> & tree, const std::vector<xgboost::detail::GradientPair> &gpairVec, const xgboost::parameters::ModelParam &param):traingData_(traingData), newGBTree_(tree), param_{param}, gpairVec_{gpairVec}{};
       void trainANewTree();
-      const std::vector<float> getPrediction();
+     // const std::vector<float> getPrediction();
 
     private:
       std::vector<TreeNode> & newGBTree_;
@@ -78,9 +78,11 @@ namespace xgboost{
       void findSplit();
       template <typename Iter>
       void enumerateSplit(Iter iter, size_t featureID, bool missingGoToRight);
+      void addChilds(size_t nodeID,TreeNode &e);
+      void setLeaf(size_t nodeID, TreeNode &e);
       void resetPosition();
-      void updateQueueExpand();
-      void doPrune();
+      void updateQueueExpand(){};
+      void doPrune(){};
     };
 
   } //namespace tree

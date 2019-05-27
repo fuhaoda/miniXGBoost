@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <data.h>
+#include "tree.h"
 #include "base.h"
 #include "./config.h"
 using namespace std;
@@ -35,6 +36,11 @@ namespace xgboost{
     data::SimpleSparseMatrix spMatrix;
     spMatrix.loadLibSVM("./machine.txt.train");
     spMatrix.translateToCSCFormat();
+
+    parameters::ModelParam mparam{};
+    tree::GBTreeModel gbTreeModel;
+
+    gbTreeModel.training(spMatrix,mparam);
 
     return 0;
   }

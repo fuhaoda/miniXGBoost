@@ -21,7 +21,7 @@ void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatri
     updateGradHess(gpairVec, y, tempPred, l2Loss); //calculate the gradient
     GBSingleTreeGenerator gbATree(traingData,GBRegModel.at(iter),gpairVec, param); //generate a new tree
     gbATree.trainANewTree();
-    updatePrediction(tempPred, gbATree.getPrediction()); //update the temp prediction vector
+//    updatePrediction(tempPred, gbATree.getPrediction()); //update the temp prediction vector
   }
 }
 
@@ -93,11 +93,11 @@ void xgboost::tree::GBSingleTreeGenerator::initNewNode() {
 
 
 void xgboost::tree::TreeNode::calWeight(float lambda) {
-weight = -sumGrad/(sumHess+lambda);
+  weight = -sumGrad/(sumHess+lambda);
 }
 
 void xgboost::tree::TreeNode::calGain(float lambda) {
-gain=0.5*sumGrad*sumGrad/(sumHess+lambda);
+  gain=0.5*sumGrad*sumGrad/(sumHess+lambda);
 }
 
 float xgboost::tree::TreeNode::getSomeGain(float sumG, float sumH, float lambda) {
@@ -105,11 +105,11 @@ float xgboost::tree::TreeNode::getSomeGain(float sumG, float sumH, float lambda)
 }
 
 bool
-xgboost::tree::TreeNode::updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight) {
+xgboost::tree::TreeNode::updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight, float eps) {
   if(bestScore > loss_chg) return false;
   bestScore = loss_chg;
   splitIndex = split_index;
-  splitValue=split_value;
+  splitValue= missing_GoToRight? split_value+eps:split_value-eps;
   missingGoToRight=missing_GoToRight;
   return true;
 }
@@ -124,7 +124,16 @@ void xgboost::tree::GBSingleTreeGenerator::findSplit() {
     enumerateSplit(traingData_.getAColRevese(feature), feature, missingGoToRight);
   }
 
-  //todo:
+  for(auto item:qexpand_){
+    const auto nid = item;
+    TreeNode & e = newGBTree_.at(nid);
+
+    if(e.bestScore > param_.reg_lambda){
+      addChilds(nid, e);
+    } else {
+      setLeaf(nid, e);
+    }
+  }
 }
 
 template <typename Iter>
@@ -146,19 +155,53 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter, size_t feat
       e.sumSomeHess=gpairVec_.at(rowID).getHess();
       e.lastSplitValue = fvalue;
     } else {
-      if(abs(fvalue-e.lastSplitValue) > param_.split_2eps && e.sumSomeHess >= param_.min_child_weight){
+      if(std::abs(fvalue-e.lastSplitValue) > param_.split_2eps && e.sumSomeHess >= param_.min_child_weight){
         const float csum_hess = e.sumHess-e.sumSomeHess;
         if(csum_hess >= param_.min_child_weight){
           const float csum_grad = e.sumGrad-e.sumSomeGrad;
           const float loss_chg = e.getSomeGain(e.sumSomeGrad, e.sumSomeHess, param_.reg_lambda)
-                                +e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
-                                - e.gain;
-          e.updateBest(loss_chg,featureID,(fvalue+e.lastSplitValue)*0.5f, missingGoToRight);
+                                 +e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
+                                 - e.gain;
+          e.updateBest(loss_chg,featureID,(fvalue+e.lastSplitValue)*0.5f, missingGoToRight, param_.split_eps);
         }
       }
       e.sumSomeGrad+=gpairVec_.at(rowID).getGrad();
       e.sumSomeHess+=gpairVec_.at(rowID).getHess();
       e.lastSplitValue = fvalue;
+    }
+  }
+
+}
+
+void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID,TreeNode &e) {
+  numOfNodes = newGBTree_.size();
+  newGBTree_.emplace_back();
+  newGBTree_.emplace_back();
+  e.leftChild= numOfNodes;
+  e.rightChild =numOfNodes+1;
+  newGBTree_.at(e.rightChild).parent=nodeID;
+  newGBTree_.at(e.leftChild).parent=nodeID;
+}
+
+void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID, TreeNode &e) {
+  e.weight=param_.learning_rate*e.weight;
+  e.leftChild=-1;
+  e.rightChild=-1;
+  e.isLeaf=true;
+}
+
+void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
+
+  //reset position
+  for(size_t i=0;i<traingData_.sampleSize();++i){
+    const int nid=position_.at(i);
+    TreeNode & e = newGBTree_.at(nid);
+    if(nid < 0) continue;
+    if(e.isLeaf){
+      position_.at(i)=-1;
+    } else {
+      //set missing data to the correct position, correct others later
+      position_.at(i)= e.missingGoToRight? e.rightChild:e.leftChild;
     }
   }
 
