@@ -4,7 +4,7 @@
 
 #include "tree.h"
 #include "lossFunction.h"
-
+#include <cmath>
 void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatrix &traingData,
                                           const xgboost::parameters::ModelParam &param) {
 
@@ -19,8 +19,8 @@ void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatri
 
   for(int iter=0; iter < param.num_round; ++iter){
     updateGradHess(gpairVec, y, tempPred, l2Loss); //calculate the gradient
-    GBSingleTreeGenerator gbATree(traingData,GBRegModel.at(iter)); //generate a new tree
-    gbATree.trainANewTree(gpairVec, param);
+    GBSingleTreeGenerator gbATree(traingData,GBRegModel.at(iter),gpairVec, param); //generate a new tree
+    gbATree.trainANewTree();
     updatePrediction(tempPred, gbATree.getPrediction()); //update the temp prediction vector
   }
 }
@@ -43,15 +43,14 @@ void xgboost::tree::GBTreeModel::updatePrediction(std::vector<float> &tempPredic
   }
 }
 
-void xgboost::tree::GBSingleTreeGenerator::trainANewTree(const std::vector<xgboost::detail::GradientPair> &gpairVec,
-                                                         const xgboost::parameters::ModelParam &param) {
-  initData(param);
-  initNewNode(gpairVec, param);
-  for(size_t depth=0; depth < param.max_depth; ++depth){
+void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
+  initData();
+  initNewNode();
+  for(size_t depth=0; depth < param_.max_depth; ++depth){
     findSplit();
     resetPosition();
     updateQueueExpand();
-    initNewNode(gpairVec,param);
+    initNewNode();
     if(qexpand_.empty()) break;
   }
 
@@ -62,32 +61,32 @@ void xgboost::tree::GBSingleTreeGenerator::trainANewTree(const std::vector<xgboo
   doPrune();
 }
 
-void xgboost::tree::GBSingleTreeGenerator::initData(const xgboost::parameters::ModelParam &param) {
+void xgboost::tree::GBSingleTreeGenerator::initData() {
   position_.clear();
   position_.resize(traingData_.sampleSize());
   std::fill(position_.begin(),position_.end(),0); //all samples point to the root node
   newGBTree_.clear();
-  utils::myAssert(param.max_depth<30,"Max depth of the tree exceed recommended depth! please change it <=20.");
-  newGBTree_.reserve(1U<<param.max_depth);
+  utils::myAssert(param_.max_depth<30,"Max depth of the tree exceed recommended depth! please change it <=20.");
+  newGBTree_.reserve(1U<<param_.max_depth);
   qexpand_.clear();
   qexpand_.reserve(256);
   qexpand_.push_back(0); //root is qexpand_.
   numOfNodes =1; //now we have a root node.
 }
 
-void xgboost::tree::GBSingleTreeGenerator::initNewNode(const std::vector<xgboost::detail::GradientPair> &gpairVec, const xgboost::parameters::ModelParam &param) {
+void xgboost::tree::GBSingleTreeGenerator::initNewNode() {
 
   newGBTree_.resize(numOfNodes);
 
   for(size_t i=0; i< traingData_.sampleSize(); ++i){
     if(position_.at(i) < 0 ) continue;
-    newGBTree_.at(position_.at(i)).sumGrad += gpairVec.at(i).getGrad();
-    newGBTree_.at(position_.at(i)).sumHess += gpairVec.at(i).getHess();
+    newGBTree_.at(position_.at(i)).sumGrad += gpairVec_.at(i).getGrad();
+    newGBTree_.at(position_.at(i)).sumHess += gpairVec_.at(i).getHess();
   }
 
   for(size_t nid:qexpand_){
-    newGBTree_.at(nid).calWeight(param.reg_lambda);
-    newGBTree_.at(nid).calGain(param.reg_lambda);
+    newGBTree_.at(nid).calWeight(param_.reg_lambda);
+    newGBTree_.at(nid).calGain(param_.reg_lambda);
   }
 
 }
@@ -99,4 +98,68 @@ weight = -sumGrad/(sumHess+lambda);
 
 void xgboost::tree::TreeNode::calGain(float lambda) {
 gain=0.5*sumGrad*sumGrad/(sumHess+lambda);
+}
+
+float xgboost::tree::TreeNode::getSomeGain(float sumG, float sumH, float lambda) {
+  return 0.5*sumG*sumG/(sumH+lambda);
+}
+
+bool
+xgboost::tree::TreeNode::updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight) {
+  if(bestScore > loss_chg) return false;
+  bestScore = loss_chg;
+  splitIndex = split_index;
+  splitValue=split_value;
+  missingGoToRight=missing_GoToRight;
+  return true;
+}
+
+
+void xgboost::tree::GBSingleTreeGenerator::findSplit() {
+
+  for(size_t feature=0; feature < traingData_.numOfCol(); ++feature){
+    bool missingGoToRight=true;
+    enumerateSplit(traingData_.getACol(feature), feature, missingGoToRight);
+    missingGoToRight=false;
+    enumerateSplit(traingData_.getAColRevese(feature), feature, missingGoToRight);
+  }
+
+  //todo:
+}
+
+template <typename Iter>
+void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter, size_t featureID, bool missingGoToRight) {
+  // clean nodes split
+  for(auto item:qexpand_){
+    newGBTree_.at(item).sumSomeGrad=0;
+    newGBTree_.at(item).sumSomeHess=0;
+  }
+
+  for(;iter!=iter.last(); ++iter){
+    const auto rowID = iter.getItem().findex;
+    const auto nid = position_.at(rowID);
+    const auto fvalue = iter.getItem().fvalue;
+    TreeNode & e = newGBTree_.at(nid);
+    if(nid  < 0) continue;
+    if(e.sumSomeHess==0){
+      e.sumSomeGrad=gpairVec_.at(rowID).getGrad();
+      e.sumSomeHess=gpairVec_.at(rowID).getHess();
+      e.lastSplitValue = fvalue;
+    } else {
+      if(abs(fvalue-e.lastSplitValue) > param_.split_2eps && e.sumSomeHess >= param_.min_child_weight){
+        const float csum_hess = e.sumHess-e.sumSomeHess;
+        if(csum_hess >= param_.min_child_weight){
+          const float csum_grad = e.sumGrad-e.sumSomeGrad;
+          const float loss_chg = e.getSomeGain(e.sumSomeGrad, e.sumSomeHess, param_.reg_lambda)
+                                +e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
+                                - e.gain;
+          e.updateBest(loss_chg,featureID,(fvalue+e.lastSplitValue)*0.5f, missingGoToRight);
+        }
+      }
+      e.sumSomeGrad+=gpairVec_.at(rowID).getGrad();
+      e.sumSomeHess+=gpairVec_.at(rowID).getHess();
+      e.lastSplitValue = fvalue;
+    }
+  }
+
 }

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include "base.h"
 
 namespace xgboost{
   namespace data{
@@ -58,15 +59,17 @@ namespace xgboost{
       //row operations
       size_t addRow(const std::vector<size_t> & findex, const std::vector<float> & fvalue);
 
-      class RowIter;
+      using RowIter = utils::ForwardIterator<Entry>;
       size_t numOfRow() const;
       RowIter getARow(size_t rowIndex) const; //RowIter is left open and right closed.
 
       //column operations
       void translateToCSCFormat(); //call this function after load data
       size_t numOfCol() const;
-      class ColIter;
+      using ColIter = utils::ForwardIterator<Entry>;
+      using ColReverseIter=utils::BackwardIterator<Entry>;
       ColIter getACol(size_t colIndex) const;
+      ColReverseIter getAColRevese(size_t colIndex) const;
 
 
     private:

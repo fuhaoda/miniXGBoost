@@ -72,46 +72,6 @@ size_t xgboost::data::SimpleSparseMatrix::numOfRow() const {
   return row_ptr_.size()-1;
 }
 
-class xgboost::data::SimpleSparseMatrix::RowIter{
-public:
-  RowIter(const xgboost::data::Entry * begin, const xgboost::data::Entry * end):dprt_(begin), begin_(begin), end_(end){}
-
-  bool operator==(const xgboost::data::Entry * rhs){
-    return dprt_==rhs;
-  }
-
-  bool operator!=(const xgboost::data::Entry * rhs){
-    return dprt_!=rhs;
-  }
-
-  const xgboost::data::Entry * operator++(){
-    return ++dprt_;
-  }
-
-  size_t findex() const{
-    return dprt_->findex;
-  }
-  float fvalue() const{
-    return dprt_->fvalue;
-  }
-
-  const xgboost::data::Entry * begin(){
-    return begin_;
-  }
-
-  const xgboost::data::Entry * end(){
-    return end_;
-  }
-
-private:
-  const xgboost::data::Entry * dprt_, * begin_, * end_;
-};
-
-
-class xgboost::data::SimpleSparseMatrix::ColIter : public xgboost::data::SimpleSparseMatrix::RowIter{
-public:
-  ColIter(const xgboost::data::Entry *begin, const xgboost::data::Entry * end):RowIter(begin,end){}
-};
 
 size_t xgboost::data::SimpleSparseMatrix::numOfEntry() const {
   return row_data_.size();
@@ -138,7 +98,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
   //count how many elements in each column
   for( size_t i = 0; i < numOfRow(); i ++ ){
     for( RowIter it = getARow(i); it!=it.end(); ++it){
-      col_ptr_[it.findex()+1]+=1;
+      col_ptr_[it.getItem().findex+1]+=1;
     }
   }
 
@@ -152,7 +112,7 @@ void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
   //go through data again to push items in
   for( size_t i = 0; i < numOfRow();  ++i ){
     for( RowIter it = getARow(i); it!=it.end(); ++it){
-      col_data_[col_ptr_[it.findex()+1]++]=Entry(i,it.fvalue());
+      col_data_[col_ptr_[it.getItem().findex+1]++]=Entry(i,it.getItem().fvalue);
     }
   }
   colAccess=true;
@@ -172,15 +132,23 @@ size_t xgboost::data::SimpleSparseMatrix::sampleSize() const {
   return y_.size();
 }
 
-xgboost::data::SimpleSparseMatrix::ColIter xgboost::data::SimpleSparseMatrix::getACol(size_t colIndex) const {
-  utils::myAssert( colIndex < numOfCol(), "Column id exceed bound" );
-  return ColIter( &col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
-}
 
 const float xgboost::data::SimpleSparseMatrix::overallResponseMean() const {
-  return std::accumulate(y_.cbegin(),y_.cend(),0)/y_.size();
+  return std::accumulate(y_.cbegin(),y_.cend(),0.0)/y_.size();
 }
 
 const std::vector<float> &xgboost::data::SimpleSparseMatrix::getY() const {
   return y_;
 }
+
+xgboost::data::SimpleSparseMatrix::ColIter xgboost::data::SimpleSparseMatrix::getACol(size_t colIndex) const {
+  utils::myAssert( colIndex < numOfCol(), "Column id exceed bound" );
+  return ColIter( &col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
+}
+
+xgboost::data::SimpleSparseMatrix::ColReverseIter
+xgboost::data::SimpleSparseMatrix::getAColRevese(size_t colIndex) const {
+  return ColReverseIter(&col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
+}
+
+
