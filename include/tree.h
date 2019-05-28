@@ -78,8 +78,8 @@ class GBSingleTreeGenerator{
   void findSplit();
   template <typename Iter>
   void enumerateSplit(Iter iter, size_t featureID, bool missingGoToRight);
-  void addChilds(size_t nodeID,TreeNode &e);
-  void setLeaf(size_t nodeID, TreeNode &e);
+  void addChilds(size_t nodeID);
+  void setLeaf(size_t nodeID);
   void resetPosition();
   void updateQueueExpand();
  //todo: add doPrune later, set a min_loss_change

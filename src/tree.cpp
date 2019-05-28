@@ -5,6 +5,8 @@
 #include "tree.h"
 #include "lossFunction.h"
 #include <cmath>
+#include <algorithm>
+
 void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatrix &traingData,
                                           const xgboost::parameters::ModelParam &param) {
 
@@ -56,7 +58,7 @@ void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
 
   // set all the rest expanding nodes to leaf
   for(const auto nodeID: qexpand_){
-    setLeaf(nodeID, newGBTree_.at(nodeID));
+    setLeaf(nodeID);
   }
 
   // start prunning the tree
@@ -69,7 +71,7 @@ void xgboost::tree::GBSingleTreeGenerator::initData() {
   std::fill(position_.begin(),position_.end(),0); //all samples point to the root node
   newGBTree_.clear();
   utils::myAssert(param_.max_depth<30,"Max depth of the tree exceed recommended depth! please change it <=20.");
-  newGBTree_.reserve(1U<<param_.max_depth);
+  newGBTree_.reserve(1U<<2*param_.max_depth);
   qexpand_.clear();
   qexpand_.reserve(256);
   qexpand_.push_back(0); //root is qexpand_.
@@ -99,11 +101,11 @@ void xgboost::tree::TreeNode::calWeight(float lambda) {
 }
 
 void xgboost::tree::TreeNode::calGain(float lambda) {
-  gain=0.5*sumGrad*sumGrad/(sumHess+lambda);
+  gain=0.5f*sumGrad*sumGrad/(sumHess+lambda);
 }
 
 float xgboost::tree::TreeNode::getSomeGain(float sumG, float sumH, float lambda) {
-  return 0.5*sumG*sumG/(sumH+lambda);
+  return 0.5f*sumG*sumG/(sumH+lambda);
 }
 
 bool
@@ -128,12 +130,10 @@ void xgboost::tree::GBSingleTreeGenerator::findSplit() {
 
   for(auto item:qexpand_){
     const auto nid = item;
-    TreeNode & e = newGBTree_.at(nid);
-
-    if(e.bestScore > param_.reg_lambda){
-      addChilds(nid, e);
+    if(newGBTree_.at(nid).bestScore > param_.reg_lambda){
+      addChilds(nid);
     } else {
-      setLeaf(nid, e);
+      setLeaf(nid);
     }
   }
 }
@@ -175,22 +175,22 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter, size_t feat
 
 }
 
-void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID,TreeNode & e) {
+void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID) {
   numOfNodes = newGBTree_.size();
   newGBTree_.emplace_back();
   newGBTree_.emplace_back();
-  e.leftChild= numOfNodes;
-  e.rightChild =numOfNodes+1;
-  newGBTree_.at(e.rightChild).parent=nodeID;
-  newGBTree_.at(e.leftChild).parent=nodeID;
+  newGBTree_.at(nodeID).leftChild= static_cast<int>(numOfNodes);
+  newGBTree_.at(nodeID).rightChild =static_cast<int>(numOfNodes+1);
+  newGBTree_.at(static_cast<size_t >(newGBTree_.at(nodeID).rightChild)).parent=static_cast<int>(nodeID);
+  newGBTree_.at(static_cast<size_t >(newGBTree_.at(nodeID).leftChild)).parent=static_cast<int>(nodeID);
   numOfNodes+=2;
 }
 
-void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID, TreeNode &e) {
-  e.weight=param_.learning_rate*e.weight;
-  e.leftChild=-1;
-  e.rightChild=-1;
-  e.isLeaf=true;
+void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID) {
+  newGBTree_.at(nodeID).weight=param_.learning_rate*newGBTree_.at(nodeID).weight;
+  newGBTree_.at(nodeID).leftChild=-1;
+  newGBTree_.at(nodeID).rightChild=-1;
+  newGBTree_.at(nodeID).isLeaf=true;
 }
 
 void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
