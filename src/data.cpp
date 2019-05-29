@@ -11,7 +11,8 @@
 #include "data.h"
 #include "base.h"
 
-size_t xgboost::data::SimpleSparseMatrix::addRow(const std::vector<size_t> &findex, const std::vector<float> &fvalue) {
+size_t xgboost::data::SimpleSparseMatrix::addRow(const std::vector<size_t> &findex,
+                                                 const std::vector<float> &fvalue) {
   utils::myAssert(findex.size() == fvalue.size());
   for (size_t iter = 0; iter < findex.size(); ++iter) {
     row_data_.emplace_back(findex[iter], fvalue[iter]);
@@ -19,7 +20,6 @@ size_t xgboost::data::SimpleSparseMatrix::addRow(const std::vector<size_t> &find
   row_ptr_.push_back(row_ptr_.back() + findex.size());
   return row_ptr_.size() - 2;
 }
-
 
 void xgboost::data::SimpleSparseMatrix::clear() {
   row_ptr_.clear();
@@ -69,62 +69,61 @@ void xgboost::data::SimpleSparseMatrix::loadLibSVM(const std::string &dataFileNa
 }
 
 size_t xgboost::data::SimpleSparseMatrix::numOfRow() const {
-  return row_ptr_.size()-1;
+  return row_ptr_.size() - 1;
 }
-
 
 size_t xgboost::data::SimpleSparseMatrix::numOfEntry() const {
   return row_data_.size();
 }
 
 xgboost::data::SimpleSparseMatrix::RowIter xgboost::data::SimpleSparseMatrix::getARow(size_t rowIndex) const {
-  utils::myAssert( rowIndex < numOfRow(), "row id exceed bound" );
-  return RowIter( &row_data_[ row_ptr_[rowIndex] ], &row_data_[ row_ptr_[rowIndex+1] ]);
+  utils::myAssert(rowIndex < numOfRow(), "row id exceed bound");
+  return RowIter(&row_data_[row_ptr_[rowIndex]], &row_data_[row_ptr_[rowIndex + 1]]);
 }
 
 void xgboost::data::SimpleSparseMatrix::translateToCSCFormat() {
-  if(colAccess){
+  if (colAccess) {
     utils::warning("Matrix has been translated to CSC format! Translation did not perform");
     return;
   }
 
-
-  auto entryWithMaxCol = std::max_element(row_data_.begin(),row_data_.end(), xgboost::data::Entry::cmp_findex);
+  auto entryWithMaxCol =
+      std::max_element(row_data_.begin(), row_data_.end(), xgboost::data::Entry::cmp_findex);
   col_data_.clear();
   col_ptr_.clear();
-  col_ptr_.resize(entryWithMaxCol->findex+2,0);
+  col_ptr_.resize(entryWithMaxCol->findex + 2, 0);
   col_data_.resize(numOfEntry());
 
   //count how many elements in each column
-  for( size_t i = 0; i < numOfRow(); i ++ ){
-    for( RowIter it = getARow(i); it!=it.end(); ++it){
-      col_ptr_[it.getItem().findex+1]+=1;
+  for (size_t i = 0; i < numOfRow(); i++) {
+    for (RowIter it = getARow(i); it != it.end(); ++it) {
+      col_ptr_[it.getItem().findex + 1] += 1;
     }
   }
 
   size_t rightBount = 0;
-  for(auto iter = col_ptr_.begin()+1;iter!=col_ptr_.end();++iter){
+  for (auto iter = col_ptr_.begin() + 1; iter != col_ptr_.end(); ++iter) {
     size_t rlen = *iter;
     *iter = rightBount;
     rightBount += rlen;
   }
 
   //go through data again to push items in
-  for( size_t i = 0; i < numOfRow();  ++i ){
-    for( RowIter it = getARow(i); it!=it.end(); ++it){
-      col_data_[col_ptr_[it.getItem().findex+1]++]=Entry(i,it.getItem().fvalue);
+  for (size_t i = 0; i < numOfRow(); ++i) {
+    for (RowIter it = getARow(i); it != it.end(); ++it) {
+      col_data_[col_ptr_[it.getItem().findex + 1]++] = Entry(i, it.getItem().fvalue);
     }
   }
-  colAccess=true;
+  colAccess = true;
 
   // sort columns
-  for( unsigned i = 0; i < numOfCol();  ++i ){
-    std::sort( &col_data_[ col_ptr_[ i ] ], &col_data_[ col_ptr_[ i+1 ] ], Entry::cmp_fvalue);
+  for (unsigned i = 0; i < numOfCol(); ++i) {
+    std::sort(&col_data_[col_ptr_[i]], &col_data_[col_ptr_[i + 1]], Entry::cmp_fvalue);
   }
 }
 
 size_t xgboost::data::SimpleSparseMatrix::numOfCol() const {
-  utils::myAssert(colAccess,"No CSC format matrix. Convert the matrix to CSC format first");
+  utils::myAssert(colAccess, "No CSC format matrix. Convert the matrix to CSC format first");
   return col_ptr_.size() - 1;
 }
 
@@ -132,9 +131,8 @@ size_t xgboost::data::SimpleSparseMatrix::sampleSize() const {
   return y_.size();
 }
 
-
 const float xgboost::data::SimpleSparseMatrix::overallResponseMean() const {
-  return std::accumulate(y_.cbegin(),y_.cend(),0.0)/y_.size();
+  return std::accumulate(y_.cbegin(), y_.cend(), 0.0) / y_.size();
 }
 
 const std::vector<float> &xgboost::data::SimpleSparseMatrix::getY() const {
@@ -142,13 +140,13 @@ const std::vector<float> &xgboost::data::SimpleSparseMatrix::getY() const {
 }
 
 xgboost::data::SimpleSparseMatrix::ColIter xgboost::data::SimpleSparseMatrix::getACol(size_t colIndex) const {
-  utils::myAssert( colIndex < numOfCol(), "Column id exceed bound" );
-  return ColIter( &col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
+  utils::myAssert(colIndex < numOfCol(), "Column id exceed bound");
+  return ColIter(&col_data_[col_ptr_[colIndex]], &col_data_[col_ptr_[colIndex + 1]]);
 }
 
 xgboost::data::SimpleSparseMatrix::ColReverseIter
 xgboost::data::SimpleSparseMatrix::getAColRevese(size_t colIndex) const {
-  return ColReverseIter(&col_data_[ col_ptr_[colIndex] ], &col_data_[ col_ptr_[colIndex+1]]);
+  return ColReverseIter(&col_data_[col_ptr_[colIndex]], &col_data_[col_ptr_[colIndex + 1]]);
 }
 
 

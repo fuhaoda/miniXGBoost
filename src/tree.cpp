@@ -24,7 +24,7 @@ void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatri
     GBSingleTreeGenerator
         gbATree(traingData, GBRegModel.at(iter), gpairVec, param); //generate a new tree
     gbATree.trainANewTree();
-//    updatePrediction(tempPred, gbATree.getPrediction()); //update the temp prediction vector
+    gbATree.updatePrediction(tempPred); //update the temp prediction vector
   }
 }
 
@@ -40,12 +40,6 @@ void xgboost::tree::GBTreeModel::updateGradHess(std::vector<xgboost::detail::Gra
   }
 }
 
-void xgboost::tree::GBTreeModel::updatePrediction(std::vector<float> &tempPredict,
-                                                  const std::vector<float> &newTreePrediction) {
-  for (size_t iter = 0; iter < tempPredict.size(); ++iter) {
-    tempPredict.at(iter) += newTreePrediction.at(iter);
-  }
-}
 
 void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
   initData();
@@ -68,9 +62,10 @@ void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
 }
 
 void xgboost::tree::GBSingleTreeGenerator::initData() {
-  position_.clear();
-  position_.resize(traingData_.sampleSize());
-  std::fill(position_.begin(), position_.end(), 0); //all samples point to the root node
+  pos.position.clear();
+  pos.setToLeafFlag.clear();
+  pos.position.resize(traingData_.sampleSize(), 0);
+  pos.setToLeafFlag.resize(traingData_.sampleSize(), false);
   newGBTree_.clear();
   utils::myAssert(param_.max_depth < 30,
                   "Max depth of the tree exceed recommended depth! please change it <=20.");
@@ -86,9 +81,9 @@ void xgboost::tree::GBSingleTreeGenerator::initNewNode() {
   newGBTree_.resize(numOfNodes);
 
   for (size_t i = 0; i < traingData_.sampleSize(); ++i) {
-    if (position_.at(i) < 0) continue;
-    newGBTree_.at(position_.at(i)).sumGrad += gpairVec_.at(i).getGrad();
-    newGBTree_.at(position_.at(i)).sumHess += gpairVec_.at(i).getHess();
+    if (pos.setToLeafFlag[i]) continue;
+    newGBTree_.at(pos.position[i]).sumGrad += gpairVec_.at(i).getGrad();
+    newGBTree_.at(pos.position[i]).sumHess += gpairVec_.at(i).getHess();
   }
 
   for (size_t nid:qexpand_) {
@@ -155,7 +150,7 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter,
 
   for (; iter != iter.last(); ++iter) {
     const auto rowID = iter.getItem().findex;
-    const auto nid = position_.at(rowID);
+    const auto nid = pos.position[rowID];
     const auto fvalue = iter.getItem().fvalue;
     TreeNode &e = newGBTree_.at(nid);
     if (nid < 0) continue;
@@ -210,14 +205,14 @@ void xgboost::tree::GBSingleTreeGenerator::setLeaf(size_t nodeID) {
 void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
   // reset position
   for (size_t i = 0; i < traingData_.sampleSize(); ++i) {
-    const int nid = position_.at(i);
-    if (nid < 0) continue;
+    if (pos.setToLeafFlag[i]) continue;
+    const size_t nid = pos.position[i];
     TreeNode &e = newGBTree_.at(nid);
     if (e.isLeaf) {
-      position_.at(i) = -1;
+      pos.setToLeafFlag[i] = true;
     } else {
       // set missing data to the correct position, correct others later
-      position_.at(i) = e.missingGoToRight ? e.rightChild : e.leftChild;
+      pos.position[i] = e.missingGoToRight ? e.rightChild : e.leftChild;
     }
   }
 
@@ -233,19 +228,20 @@ void xgboost::tree::GBSingleTreeGenerator::resetPosition() {
   for (const auto featureID: featureSplits) {
     for (auto iter = traingData_.getACol(featureID); iter != iter.last(); ++iter) {
       const auto rowID = iter.getItem().findex;
-      int nodeID = position_.at(rowID);
-      if (nodeID < 0) continue;
+      if (pos.setToLeafFlag[rowID]) continue;
+      size_t nodeID = pos.position[rowID];
       nodeID = newGBTree_.at(nodeID).parent;
       if (newGBTree_.at(nodeID).splitIndex == featureID) {
         if (iter.getItem().fvalue < newGBTree_.at(nodeID).splitValue) {
-          position_.at(rowID) = newGBTree_.at(nodeID).leftChild;
+          pos.position[rowID] = newGBTree_.at(nodeID).leftChild;
         } else {
-          position_.at(rowID) = newGBTree_.at(nodeID).rightChild;
+          pos.position[rowID] = newGBTree_.at(nodeID).rightChild;
         }
       }
     }
   }
 }
+
 void xgboost::tree::GBSingleTreeGenerator::updateQueueExpand() {
   std::vector<size_t> newNodes{};
   for (const auto nodeID: qexpand_) {
@@ -256,4 +252,10 @@ void xgboost::tree::GBSingleTreeGenerator::updateQueueExpand() {
     }
   }
   qexpand_ = newNodes;
+}
+
+void xgboost::tree::GBSingleTreeGenerator::updatePrediction(std::vector<float> &tempPredict) {
+  for (size_t i = 0; i < traingData_.sampleSize(); ++i) {
+    tempPredict[i] += newGBTree_[pos.position[i]].weight;
+  }
 }
