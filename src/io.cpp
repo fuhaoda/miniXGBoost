@@ -2,8 +2,16 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include <limits> 
+#include <limits>
 #include "io.h"
+
+
+using myfloat_t = float;
+
+
+
+
+// TODO: labels -> responses
 
 void loadSVMData(const std::string &fname,
                  std::vector<std::vector<Entry>> &feature_matrix,
