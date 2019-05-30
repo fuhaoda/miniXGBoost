@@ -7,20 +7,17 @@
 #include <cmath>
 #include <algorithm>
 
-void xgboost::tree::GBTreeModel::training(const xgboost::data::SimpleSparseMatrix &traingData,
+void xgboost::tree::GBTreeModel::train(const xgboost::data::SimpleSparseMatrix &traingData,
                                           const xgboost::parameters::ModelParam &param) {
-
-  std::vector<float> tempPred(traingData.sampleSize(), traingData.overallResponseMean());
+  overallMean = traingData.overallResponseMean();
+  std::vector<float> tempPred(traingData.sampleSize(), overallMean);
   std::vector<detail::GradientPair> gpairVec(traingData.sampleSize());
   auto &y = traingData.getY();
-
-  lossFunction::SquaredEorrLoss l2Loss;
-
   GBRegModel.clear();
   GBRegModel.resize(param.num_round);
 
   for (int iter = 0; iter < param.num_round; ++iter) {
-    updateGradHess(gpairVec, y, tempPred, l2Loss); //calculate the gradient
+    updateGradHess(gpairVec, y, tempPred, lossFun_); //calculate the gradient
     GBSingleTreeGenerator
         gbATree(traingData, GBRegModel.at(iter), gpairVec, param); //generate a new tree
     gbATree.trainANewTree();
@@ -40,6 +37,35 @@ void xgboost::tree::GBTreeModel::updateGradHess(std::vector<xgboost::detail::Gra
   }
 }
 
+float xgboost::tree::GBTreeModel::evaluate(const xgboost::data::SimpleSparseMatrix &testingData) {
+  predict(testingData);
+  float averageLoss{0};
+  for(size_t i=0;i <  testingData.sampleSize(); ++i){
+    averageLoss+=lossFun_.loss(testingData.getY()[i], predictValues_[i]);
+  }
+  return averageLoss/ static_cast<float>(testingData.sampleSize());
+}
+
+const std::vector<float> & xgboost::tree::GBTreeModel::predict(const
+xgboost::data::SimpleSparseMatrix &featureData) {
+  predictValues_.clear();
+  predictValues_.resize(featureData.sampleSize(),overallMean);
+  //iterate with row, so that we can easy to implement parallel version for the future
+  for(size_t rowID=0; rowID < featureData.sampleSize(); ++rowID){
+    auto iter = featureData.getARow(rowID);
+    predictARecord(iter);
+  }
+  return predictValues_;
+}
+
+void xgboost::tree::GBTreeModel::predictARecord(xgboost::data::SimpleSparseMatrix::RowIter & iter) {
+  //todo: prepare the value with default
+  for(auto const & tree:GBRegModel){
+    //get leave index
+    //get weight
+    //sum it up
+  }
+}
 
 void xgboost::tree::GBSingleTreeGenerator::trainANewTree() {
   initData();

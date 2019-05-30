@@ -49,12 +49,18 @@ struct TreeNode {
 
 class GBTreeModel {
  public:
-  void training(const data::SimpleSparseMatrix &traingData, const parameters::ModelParam &param);
-  //  void testing(const data::SimpleSparseMatrix & testingData);
-  //  std::vector<float> predicting(const data::SimpleSparseMatrix & featureData); //no response of y
+  explicit GBTreeModel(xgboost::lossFunction::LossFunction &lossFun):lossFun_{lossFun}{}
+  void train(const data::SimpleSparseMatrix &traingData, const parameters::ModelParam &param);
+  float evaluate(const data::SimpleSparseMatrix & testingData);
+  const std::vector<float> & predict(const data::SimpleSparseMatrix & featureData); //no response
+  // of y
 
  private:
+  std::vector<float> predictValues_{};
+  xgboost::lossFunction::LossFunction &lossFun_;
   std::vector<std::vector<TreeNode>> GBRegModel;
+  float overallMean;
+  void predictARecord(xgboost::data::SimpleSparseMatrix::RowIter & iter);
   void updateGradHess(std::vector<detail::GradientPair> &gpair,
                       const std::vector<float> &y,
                       const std::vector<float> &tempPred,

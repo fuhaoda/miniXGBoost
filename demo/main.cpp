@@ -30,14 +30,17 @@ int CLIRunTask(int argc, char *argv[]) {
   }
 
   //load data
-  data::SimpleSparseMatrix spMatrix;
-  spMatrix.loadLibSVM("./machine.txt.train");
-  spMatrix.translateToCSCFormat();
+  data::SimpleSparseMatrix spMatrixTraining;
+  spMatrixTraining.loadLibSVM("./machine.txt.train");
+  spMatrixTraining.translateToCSCFormat();
+
+  lossFunction::SquaredEorrLoss l2Loss;
 
   parameters::ModelParam mparam{};
-  tree::GBTreeModel gbTreeModel;
+  tree::GBTreeModel gbTreeModel(l2Loss);
 
-  gbTreeModel.training(spMatrix, mparam);
+  gbTreeModel.train(spMatrixTraining, mparam);
+
 
   return 0;
 }
