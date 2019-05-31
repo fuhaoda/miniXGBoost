@@ -1,4 +1,5 @@
 #include "gbm.h"
+#include <fstream>
 
 ModelParam gbmParser(const std::string &config_file) {
   ModelParam param;
@@ -31,7 +32,7 @@ ModelParam gbmParser(const std::string &config_file) {
       continue;
 
     if (key.compare("num_round") == 0) {
-      param.num_round = std::stoul(value);
+      param.K = std::stoul(value);
     } else if (key.compare("gamma") == 0) {
       param.gamma = std::stof(value);
     } else if (key.compare("lambda") == 0) {

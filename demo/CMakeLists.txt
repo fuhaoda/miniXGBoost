@@ -1,4 +1,4 @@
-add_executable(demo EXCLUDE_FROM_ALL demo.cpp)
+add_executable(demo EXCLUDE_FROM_ALL main.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(demo minixgboost)
 

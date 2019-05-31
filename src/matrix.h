@@ -7,7 +7,7 @@
 // to the column index of the nonzero entry. For CSC format, the index field
 // corresponds to the row index of the nonzero entry. 
 struct Entry {
-  Entry(size_t i, float v): index{i}, value{v} { }
+  Entry(size_t i = 0, float v = 0.0): index{i}, value{v} { }
 
   size_t index;
   float value; 
@@ -26,6 +26,9 @@ struct Entry {
 // support.  
 class SparseMatrix {
 public:
+  //  SparseMatrix() = default; 
+
+  
   // data[i] corresponds to the covariates of the ith sample. Only the
   // covariates whose values are nonzero are included. 
   SparseMatrix(const std::vector<std::vector<Entry>> &data,
