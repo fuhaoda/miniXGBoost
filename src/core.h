@@ -19,6 +19,9 @@ public:
   void apply(const std::string &test_data, std::vector<float> &pred) const; 
 
 private:
+  // Parameter controlling floating point precision. 
+  static const float eps, eps2; 
+    
   // Model parameter.
   ModelParam param_;
 
@@ -58,10 +61,10 @@ private:
   void createGBTree(size_t tid, float sum_grad, float sum_hess);
 
   // Find the split index/value to further split each newly created
-  // leaf nodes. Split index -1 means the node will remain leaf and
-  // all associated samples will be skipped for further consideration
-  // in the tree. 
-  void findSplit(); 
+  // leaf nodes, the indices of which are in [first_node, last_node).
+  // Split index -1 means the node will remain leaf and all associated
+  // samples will be skipped for further consideration in the tree. 
+  void findSplit(size_t offset, size_t first_node, size_t last_node); 
   
 };
 

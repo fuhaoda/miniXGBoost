@@ -1,6 +1,9 @@
 #include "core.h"
 #include "io.h" 
 
+const float GBMCore::eps = 1e-5;
+const float GBMCore::eps2 = 2e-5; 
+
 void GBMCore::train(const std::string &train_data) {
   // Load training data set.
   std::vector<std::vector<Entry>> feature_matrix; 
@@ -58,16 +61,67 @@ void GBMCore::createGBTree(size_t tid, float sum_grad, float sum_hess) {
   // Number of tree nodes created on the new tre.
   int iter = 0;
 
-  // Configure the root node of the new tree. 
-  TreeNode &node = tree_[offset + iter]; 
-  node.sum_grad = sum_grad;
-  node.sum_hess = sum_hess;
+  // Configure the root node of the new tree.
+  tree_[offset].sum_grad = sum_grad;
+  tree_[offset].sum_hess = sum_hess; 
+
+  // Range of the indices of the tree nodes of each layer.
+  size_t first_node = 0;
+  size_t last_node = 1; 
 
   // Construct the tree
   for (size_t depth = 0; depth < param_.max_depth; ++depth) {
     // Find split index/value
+    findSplit(offset, first_node, last_node); 
 
     // Split the samples and update the prediction values for samples that
     // remain in the same treenodes.
   }  
+}
+
+void GBMCore::findSplit(size_t offset, size_t first_node, size_t last_node) {
+  for (size_t col = 0; col < matrix_.nCols(); ++col) {
+    // Get the [begin, end) of the column
+    const Entry *cbegin = matrix_.begin(col, true);
+    const Entry *cend = matrix_.begin(col, true);
+
+    // Reset stat for forward enumeration. 
+    for (size_t iter = first_node; iter < last_node; ++iter)
+      tree_[offset + iter].reset(); 
+
+    for (const Entry *entry = cbegin; entry < cend; ++entry) {
+      size_t row = entry->index;
+      int nidx = pos_[row];
+
+      if (nidx < 0)
+        continue;
+
+      float fvalue = entry->value; 
+
+      // Get a handle of the tree node.
+      TreeNode &node = tree_[offset + nidx];
+
+      // Test if this is the first hit. The loss function is convex, so the
+      // accumulation of hessian should be nonnegative. 
+      if (node.child_hess == 0.0) {
+        node.child_grad = grad_[row];
+        node.child_hess = hess_[row];
+        node.last_value = fvalue; 
+      } else {
+        node.update(col, grad_[row], hess_[row], fvalue,
+                    eps2, param_.min_weight, param_.lambda, param_.gamma, true);
+      }
+    } 
+
+    // Reset stat again for backward enumeration. 
+    for (size_t iter = first_node; iter < last_node; ++iter)
+      tree_[offset + iter].reset(); 
+
+    // Backward enumeration
+    for (const Entry *entry = cend - 1; entry >= cbegin; --entry) {
+
+
+    }
+  }
+
 }

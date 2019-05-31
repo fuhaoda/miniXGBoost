@@ -25,7 +25,7 @@ struct ModelParam {
   // each step of tree boosting, i.e., when a new layer of the tree is added.
   float eta = 0.3;
 
-  // Minimum weight permitted in a leaf node.
+  // Minimum sum of hessian to make a node eligible for split consideration. 
   float min_weight = 1.0;
 };
 
