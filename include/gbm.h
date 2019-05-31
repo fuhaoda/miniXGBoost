@@ -26,7 +26,9 @@ struct ModelParam {
 
   // Minimum weight permitted in a leaf node.
   float min_weight = 1.0;
-}; 
+};
+
+ModelParam gbmParser(const std::string &config_file); 
 
 // Part #2: loss function 
 using func_t = float (*)(float, float);

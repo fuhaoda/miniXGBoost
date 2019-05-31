@@ -1,1 +1,1 @@
-FILE(GLOB header_files *.h)
+install(FILES gbm.h DESTINATION include/minixgboost)

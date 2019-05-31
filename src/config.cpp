@@ -1,12 +1,13 @@
-#include <fstream>
-#include 
-#include "config.h"
+#include "gbm.h"
 
-ConfigParser::ConfigParser(const std::string &config_file) {
+ModelParam gbmParser(const std::string &config_file) {
+  ModelParam param;
+
+  // Open configuration file. 
   std::ifstream file(config_file);
 
-  char delimiter = '=';
   char comment = '#';
+  char delimiter = '=';
   std::string line, key, value;
 
   while (!file.eof()) {
@@ -29,28 +30,22 @@ ConfigParser::ConfigParser(const std::string &config_file) {
     if (line.empty() || key.empty() || value.empty())
       continue;
 
-    cleanString(key);
-    cleanString(value);
-
     if (key.compare("num_round") == 0) {
-      model_param_.num_round = std::stoul(value);
+      param.num_round = std::stoul(value);
     } else if (key.compare("gamma") == 0) {
-      model_param_.gamma = std::stof(value);
+      param.gamma = std::stof(value);
     } else if (key.compare("lambda") == 0) {
-      model_param_.lambda = std::stof(value);
+      param.lambda = std::stof(value);
     } else if (key.compare("max_depth") == 0) {
-      model_param_.max_depth = std::stoul(value);
+      param.max_depth = std::stoul(value);
     } else if (key.compare("eta") == 0) {
-      model_param_.eta = std::stof(value);
+      param.eta = std::stof(value);
     } else if (key.compare("min_weight") == 0) {
-      model_param_.min_weight = std::stof(value);
-    } else if (key.compare("training_data_path") == 0) {
-      io_param_.training_data_path = value;
-    } else if (key.compare("testing_data_path") == 0) {
-      io_param_.testing_data_path = value;
+      param.min_weight = std::stof(value);
     }
   }
 
   file.close();
-}
 
+  return param; 
+}
