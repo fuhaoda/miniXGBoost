@@ -39,18 +39,6 @@ struct LossFunction {
   func_t loss, grad, hess;
 };
 
-inline float squaredErrorLoss(float y, float yhat) {
-  return (y - yhat) * (y - yhat) / 0.5;
-}
-
-inline float squaredErrorGradient(float y, float yhat) {
-  return yhat - y;
-}
-
-inline float squaredErrorHessian(float y, float yhat) {
-  return 1.0;
-}
-
 // Part #3: Gradient Boosting Method
 class GBM {
 public:

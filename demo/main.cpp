@@ -1,11 +1,12 @@
 #include "gbm.h"
+#include "loss_function.h"
 
 //
 // Usage: ./demo config train.txt
 //
 
 int main(int argc, char **argv) {
-  // Parser the configuration file to get model parameters.
+  // Parse the configuration file to get model parameters.
   ModelParam param = gbmParser(argv[1]);
 
   // Specify the loss function

@@ -1,1 +1,1 @@
-install(FILES gbm.h DESTINATION include/minixgboost)
+install(FILES gbm.h loss_function.h DESTINATION include/minixgboost)

@@ -1,21 +1,11 @@
 #include <cstdio>
 #include <sstream>
 #include <fstream>
-#include <string>
-#include <limits>
 #include "io.h"
-
-
-using myfloat_t = float;
-
-
-
-
-// TODO: labels -> responses
 
 void loadSVMData(const std::string &fname,
                  std::vector<std::vector<Entry>> &feature_matrix,
-                 std::vector<float> &labels) {
+                 std::vector<float> &response) {
   std::ifstream file(fname); 
   std::istringstream ss;
   std::string line, field;
@@ -29,10 +19,14 @@ void loadSVMData(const std::string &fname,
     size_t index;
     float value; 
     while(getline(ss, field, ' ')) {
+      // Skip extra white space
+      if (field.empty())
+        continue; 
+      
       if (sscanf(field.c_str(), "%zu:%f", &index, &value) == 2) {
         entries.emplace_back(index, value);
       } else if (sscanf(field.c_str(), "%f", &value) == 1) {
-        labels.push_back(value);
+        response.push_back(value);
       }
     }
 

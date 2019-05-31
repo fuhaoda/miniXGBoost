@@ -7,6 +7,6 @@
 
 void loadSVMData(const std::string &fname,
                  std::vector<std::vector<Entry>> &feature_matrix,
-                 std::vector<float> &labels); 
+                 std::vector<float> &resp); 
 
 #endif

@@ -26,8 +26,7 @@ struct Entry {
 // support.  
 class SparseMatrix {
 public:
-  //  SparseMatrix() = default; 
-
+  SparseMatrix() = default; 
   
   // data[i] corresponds to the covariates of the ith sample. Only the
   // covariates whose values are nonzero are included. 
