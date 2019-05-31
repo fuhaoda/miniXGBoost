@@ -1,9 +1,38 @@
 #ifndef MINIXGBOOST_TREE_H
 #define MINIXGBOOST_TREE_H
 
+#include <limits> 
 
 struct TreeNode {
-  int parent; 
+  // Index of the parent, left and right child nodes. 
+  int parent{-1}, lchild{-1}, rchild{-1}; 
+
+  // If the treenode is a leaf.
+  bool is_leaf{true}; 
+
+  // Sum of the gradient/hessian of the samples associated with the treenode. 
+  float sum_grad{0.0}, sum_hess{0.0};
+
+  // For an internal node of the tree, the index of the feature and the
+  // associated value used to split the samples.
+  int split_index{-1};
+  float split_value{0.0}; 
+
+  // Best score found when enumerating split options.
+  float best_score{std::numeric_limits<float>::min()}; 
+  
+  // Default branch for missing value 
+  bool default_to_right{true};
+
+  // Update the best score
+  void updateBest(float score, size_t sindex, float svalue, bool go_right) { } 
+  
+  // Return the weight of the tree node. 
+  float weight(float lambda) { return -sum_grad / (sum_hess + lambda); } 
+
+  // Return the gain, this is the individual term inside the bracket of Eq. (7)
+  // in arXiv: 1603.02754v
+  float gain(float lambda) { return sum_grad * sum_grad / (sum_hess + lambda); }  
 }; 
 
 
@@ -18,30 +47,14 @@ struct TreeNode {
 // namespace tree{
 
 // struct TreeNode{
-//   int parent{-1};
-//   int leftChild{-1};
-//   int rightChild{-1};
-//   float sumGrad{0};
-//   float sumHess{0};
-//   float weight{0};
-//   float gain{0};
-
-//   void calWeight(float lambda);
-//   void calGain(float lambda);
-
-//   bool isLeaf{false}; //this is important default setting
-
 //   // split values. Only valid for a parent node.
 //   float sumSomeGrad{0};
 //   float sumSomeHess{0};
 //   float getSomeGain(float sumG, float sumH, float lambda);
 //   bool updateBest(float loss_chg, unsigned split_index, float split_value, bool missing_GoToRight, float eps);
-//   size_t splitIndex{0};
-//   float splitValue{0};
 //   float lastSplitValue{std::numeric_limits<float>::min()};
 //   //true: build G_L based on ascending order of X_i, then G_R=G-G_L
 //   //false: build G_R based on descent order  of X_i, then G_L=G-G_R
-//   bool  missingGoToRight{true};
 //   float bestScore{0};
 // }; //end of TreeNode Struct definition
 
