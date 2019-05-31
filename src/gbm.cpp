@@ -2,7 +2,6 @@
 
 std::vector<GBMCore> __model__; 
 
-
 GBM::GBM(ModelParam &param, LossFunction &loss) {
   __model__.emplace_back(param, loss);
   id_ = __model__.size() - 1; 

@@ -1,7 +1,8 @@
 #ifndef MINIXGBOOST_GBM_H
 #define MINIXGBOOST_GBM_H
 
-#include <string> 
+#include <string>
+#include <vector>
 
 // Public APIs of the Gradient Boosting Method. 
 
