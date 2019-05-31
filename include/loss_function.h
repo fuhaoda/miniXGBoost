@@ -1,26 +1,26 @@
 #ifndef MINIXGBOOST_LOSS_FUNCTION_H
 #define MINIXGBOOST_LOSS_FUNCTION_H
 
-// Abstract base class
-class LossFunction {
-public:
-  // Parameter yhat is the predicted value. 
-  virtual float gradient(float y, float yhat) = 0; 
-  virtual float hessian(float y, float yhat) = 0;
-  virtual ~LossFunction() { }
+
+using func_t = float (*)(float, float);
+
+struct LossFunction {
+  LossFunction(func_t f, func_t g, func_t h) :
+    loss{f}, gradient{g}, hessian{h} { }
+
+  func_t loss, gradient, hessian; 
 };
 
-class SquaredErrorLoss : public LossFunction {
-public:
-  float gradient(float y, float yhat) override {
-    return yhat - y;
-  }
+inline float squaredErrorLoss(float y, float yhat) {
+  return (y - yhat) * (y - yhat) / 0.5;
+}
 
-  float hessian(float y, float yhat) override {
-    return 1.0;
-  }
+inline float squaredErrorGradient(float y, float yhat) {
+  return yhat - y;
+}
 
-  ~SquaredErrorLoss() { } 
-}; 
+inline float squaredErrorGradient(float y, float yhat) {
+  return 1.0;
+} 
 
 #endif 

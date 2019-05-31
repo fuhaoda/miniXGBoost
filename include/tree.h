@@ -1,9 +1,10 @@
-//
-// Created by Haoda Fu on 2019-05-24.
-//
-
 #ifndef MINIXGBOOST_TREE_H
 #define MINIXGBOOST_TREE_H
+
+
+
+
+
 
 #include <iostream>
 #include <vector>
