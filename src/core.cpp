@@ -85,43 +85,51 @@ void GBMCore::findSplit(size_t offset, size_t first_node, size_t last_node) {
     const Entry *cbegin = matrix_.begin(col, true);
     const Entry *cend = matrix_.begin(col, true);
 
-    // Reset stat for forward enumeration. 
-    for (size_t iter = first_node; iter < last_node; ++iter)
-      tree_[offset + iter].reset(); 
+    // Forward enumeration.
+    enumSplit(col, cbegin, cend - 1, 1, offset + first_node, offset + last_node,
+              true, eps);
 
-    for (const Entry *entry = cbegin; entry < cend; ++entry) {
-      size_t row = entry->index;
-      int nidx = pos_[row];
+    // Backward enumeration.
+    enumSplit(col, cend - 1, cbegin, -1, offset + first_node, offset + last_node,
+              false, -eps);
+  }
+}
 
-      if (nidx < 0)
-        continue;
+void GBMCore::enumSplit(size_t index, const Entry *cbegin, const Entry *cend,
+                        int incre, size_t first_node, size_t last_node,
+                        bool goto_right, float delta) {
+  // Reset statistics
+  for (size_t iter = first_node; iter < last_node; ++iter)
+    tree_[iter].reset();
 
-      float fvalue = entry->value; 
+  for (const Entry *entry = cbegin; entry <= cend; entry += incre) {
+    size_t row = entry->index;
+    int nidx = pos_[row];
 
-      // Get a handle of the tree node.
-      TreeNode &node = tree_[offset + nidx];
+    if (nidx < 0)
+      continue;
 
-      // Test if this is the first hit. The loss function is convex, so the
-      // accumulation of hessian should be nonnegative. 
-      if (node.child_hess == 0.0) {
-        node.child_grad = grad_[row];
-        node.child_hess = hess_[row];
-        node.last_value = fvalue; 
-      } else {
-        node.update(col, grad_[row], hess_[row], fvalue,
-                    eps2, param_.min_weight, param_.lambda, param_.gamma, true);
-      }
-    } 
+    float fvalue = entry->value;
 
-    // Reset stat again for backward enumeration. 
-    for (size_t iter = first_node; iter < last_node; ++iter)
-      tree_[offset + iter].reset(); 
+    // Get a handle of the tree node.
+    TreeNode &node = tree_[nidx];
 
-    // Backward enumeration
-    for (const Entry *entry = cend - 1; entry >= cbegin; --entry) {
-
-
+    // Test if this is the first hit to update the statistics. The loss function
+    // is convex, so the sum of hessian should be nonnegative.
+    if (node.child_hess == 0.0) {
+      node.child_grad = grad_[row];
+      node.child_hess = hess_[row];
+      node.last_value = fvalue;
+    } else {
+      node.update(index, grad_[row], hess_[row], fvalue, eps2,
+                  param_.min_weight, param_.lambda, param_.gamma, goto_right);
     }
   }
 
+  // The entire column is scanned. Do one final check because inside the for
+  // loop each node does not know if the last value of the column has been
+  // read.
+  for (size_t iter = first_node; iter < last_node; ++iter)
+    tree_[iter].update(index, delta, param_.min_weight, param_.lambda,
+                       param_.gamma, goto_right);
 }

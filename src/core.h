@@ -64,8 +64,12 @@ private:
   // leaf nodes, the indices of which are in [first_node, last_node).
   // Split index -1 means the node will remain leaf and all associated
   // samples will be skipped for further consideration in the tree. 
-  void findSplit(size_t offset, size_t first_node, size_t last_node); 
-  
+  void findSplit(size_t offset, size_t first_node, size_t last_node);
+
+  // Helper function to findSplit.
+  void enumSplit(size_t index, const Entry *cbegin, const Entry *cend,
+                 int incre, size_t first_node, size_t last_node,
+                 bool goto_right, float delta); 
 };
 
 // Factory of models. 
