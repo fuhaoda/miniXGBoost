@@ -67,9 +67,22 @@ private:
   void findSplit(size_t offset, size_t first_node, size_t last_node);
 
   // Helper function to findSplit.
-  void enumSplit(size_t index, const Entry *cbegin, const Entry *cend,
-                 int incre, size_t first_node, size_t last_node,
-                 bool goto_right, float delta); 
+  void enumSplit(size_t findex, size_t offset,
+                 const Entry *cbegin, const Entry *cend, int incre,
+                 size_t first_node, size_t last_node, bool goto_right,
+                 float delta);
+
+  // Split the tree nodes. Count the number of splits and the collect
+  // the set of feature indices used for the split. 
+  void split(size_t offset, size_t first_node, size_t last_node,
+             int &nsplits, std::vector<size_t> &split_index);
+
+  // Update sample locations. If the node a sample previously belongs
+  // to is not split, update the prediction value of the sample. .
+  void updatePos(size_t offset, const std::vector<size_t> &split_index);
+
+  // Set the sum of gradient/hessian in the newly created leaf nodes.
+  void setNewNodes(size_t offset); 
 };
 
 // Factory of models. 
