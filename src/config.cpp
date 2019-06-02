@@ -55,15 +55,15 @@ void miniXGBoost::ConfigParse::assignParameters(miniXGBoost::ModelParam &param) 
   for(auto const & item:pairKeyValue_){
     auto const & key= item.first;
     auto const & value = item.second;
-    if (key == "num_round") {
+    if (key == "nTrees") {
       param.nTrees = std::stoul(value);
-    } else if (key == "gamma") {
+    } else if (key == "reg_nodes") {
       param.reg_nodes = std::stof(value);
-    } else if (key == "lambda") {
+    } else if (key == "reg_weights") {
       param.reg_weights = std::stof(value);
     } else if (key == "max_depth") {
       param.max_depth = std::stoul(value);
-    } else if (key == "eta") {
+    } else if (key == "shrinkage") {
       param.shrinkage = std::stof(value);
     } else if (key == "min_weight") {
       param.min_weight = std::stof(value);
