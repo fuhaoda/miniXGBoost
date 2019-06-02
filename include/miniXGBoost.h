@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include "../src/treeNodes.h"
 
 // Public APIs of the Gradient Boosting Method.
 
@@ -34,6 +35,19 @@ struct ModelParam {
 
   // Minimum sum of hessian to make a node eligible for split consideration.
   float min_weight = 1.0;
+
+  // Input data file format
+  enum DataFileFormat{libsvm, csv};
+  DataFileFormat featureMatrixFileType= DataFileFormat::libsvm;
+
+  // Training data path
+  std::string trainDataPath{};
+
+  // Evaluation data path
+  std::string evalDataPath{};
+
+  // Prediction feature matrix path
+  std::string predFeatureMatrixPath{};
 };
 
 // Part #2: loss function
@@ -45,20 +59,7 @@ struct LossFunction {
   func_t loss, grad, hess;
 };
 
-// Part #3: MiniXGBoost Method TreeNode and Model
-struct TreeNode {
-  // Index of the parent, left and right child nodes.
-  int parent{-1};
-  int lChild{-1};
-  int rChild{-1};
-
-  //weight and gain
-  float weight{0.0f};
-  float gain{0.0f};
-
-  size_t splitFeatureIndex{0};
-  float splitValue{0};
-};
+// Part #3: MiniXGBoost Method Model
 
 class MiniXGBoost {
  public:
@@ -70,7 +71,7 @@ class MiniXGBoost {
   // Evaluate the trained model to testing data set.
   void evaluate(const std::string &test_data, std::vector<float> &pred) const;
 
-  // use the
+  // use the feature matrix to predict the outcome
   std::vector<float> predict(const std::string &featureMatrix);
 
  private:
@@ -82,6 +83,6 @@ class MiniXGBoost {
 
 ModelParam configFileParser(const std::string &config_file);
 
-} // namespace namespace miniXGBoost
+} // namespace miniXGBoost
 
 #endif //MINIXGBOOST_INCLUDE_MINIXGBOOST_H_

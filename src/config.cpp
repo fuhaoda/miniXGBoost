@@ -55,6 +55,7 @@ void miniXGBoost::ConfigParse::assignParameters(miniXGBoost::ModelParam &param) 
   for(auto const & item:pairKeyValue_){
     auto const & key= item.first;
     auto const & value = item.second;
+
     if (key == "nTrees") {
       param.nTrees = std::stoul(value);
     } else if (key == "reg_nodes") {
@@ -67,6 +68,16 @@ void miniXGBoost::ConfigParse::assignParameters(miniXGBoost::ModelParam &param) 
       param.shrinkage = std::stof(value);
     } else if (key == "min_weight") {
       param.min_weight = std::stof(value);
+    } else if (key == "dataFormat" && value=="LIBSVM") {
+      param.featureMatrixFileType = ModelParam::DataFileFormat::libsvm;
+    } else if(key == "dataFormat" && value=="CSV"){
+      param.featureMatrixFileType = ModelParam::DataFileFormat::csv;
+    } else if(key == "data.train") {
+      param.trainDataPath = value;
+    } else if(key == "data.eval") {
+      param.evalDataPath = value;
+    } else if(key == "data.pred") {
+      param.predFeatureMatrixPath = value;
     } else {
       utils::warning("Some keys in configuration file cannot be parsed!");
     }

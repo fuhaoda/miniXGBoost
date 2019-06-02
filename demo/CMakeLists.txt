@@ -1,4 +1,4 @@
-add_executable(demo main.cpp)
+add_executable(demo main.cpp ../include/io.h)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(demo miniXGBoost)
 

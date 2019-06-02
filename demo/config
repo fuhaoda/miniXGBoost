@@ -24,7 +24,7 @@ shrinkage = 1.0
 min_weight = 1.0
 
 # Feature matrix data format, support LIBSVM, CSV...
-fMatrix = LIBSVM
+dataFormat = LIBSVM
 
 # The path of training data which contains both feature matrix and responses
 data.train = "train.txt"
