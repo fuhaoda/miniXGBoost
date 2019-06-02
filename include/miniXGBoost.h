@@ -46,7 +46,7 @@ struct LossFunction {
 };
 
 // Part #3: MiniXGBoost Method TreeNode and Model
-struct TreeNode{
+struct TreeNode {
   // Index of the parent, left and right child nodes.
   int parent{-1};
   int lChild{-1};
@@ -80,9 +80,8 @@ class MiniXGBoost {
   } model_;
 };
 
-ModelParam gbmParser(const std::string &config_file);
+ModelParam configFileParser(const std::string &config_file);
 
-
-}
+} // namespace namespace miniXGBoost
 
 #endif //MINIXGBOOST_INCLUDE_MINIXGBOOST_H_
