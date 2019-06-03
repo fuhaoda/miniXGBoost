@@ -100,14 +100,14 @@ void GBMCore::findSplit(size_t offset, size_t first_node, size_t last_node) {
   for (size_t col = 0; col < matrix_.nCols(); ++col) {
     // Get the [begin, end) of the column
     const Entry *cbegin = matrix_.begin(col, true);
-    const Entry *cend = matrix_.begin(col, true);
+    const Entry *cend = matrix_.end(col, true);
 
     // Forward enumeration.
-    enumSplit(col, offset, cbegin, cend - 1, 1, first_node, last_node,
+    enumSplit(col, offset, cbegin, cend, 1, first_node, last_node,
               true, eps);
 
     // Backward enumeration.
-    enumSplit(col, offset, cend - 1, cbegin, -1, first_node, last_node,
+    enumSplit(col, offset, cend - 1, cbegin - 1, -1, first_node, last_node,
               false, -eps); 
   }
 }
@@ -120,7 +120,7 @@ void GBMCore::enumSplit(size_t findex, size_t offset,
   for (size_t iter = offset + first_node; iter < offset + last_node; ++iter)
     tree_[iter].reset();
 
-  for (const Entry *entry = cbegin; entry <= cend; entry += incre) {
+  for (const Entry *entry = cbegin; entry != cend; entry += incre) {
     size_t row = entry->index;
     int nidx = pos_[row];
 
