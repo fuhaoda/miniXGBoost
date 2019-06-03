@@ -87,11 +87,11 @@ void miniXGBoost::GBEstimator::findSplit(size_t tid, size_t first_node, size_t l
     const data::Entry *cend = data_.X.cend(col, true);
 
     // Forward enumeration.
-    enumSplit(tid, col, cbegin, cend - 1, 1, first_node, last_node,
+    enumSplit(tid, col, cbegin, cend, 1, first_node, last_node,
               true, eps);
 
     // Backward enumeration.
-    enumSplit(tid, col, cend - 1, cbegin, -1, first_node, last_node,
+    enumSplit(tid, col, cend - 1, cbegin-1, -1, first_node, last_node,
               false, -eps);
   }
 }
@@ -108,7 +108,7 @@ void miniXGBoost::GBEstimator::enumSplit(size_t tid, size_t findex,
   for (size_t iter = first_node; iter < last_node; ++iter)
     model_[tid][iter].reset();
 
-  for (const data::Entry *entry = cbegin; entry <= cend; entry += incre) {
+  for (const data::Entry *entry = cbegin; entry != cend; entry += incre) {
     size_t row = entry->index;
     int nidx = pos_[row];
 
