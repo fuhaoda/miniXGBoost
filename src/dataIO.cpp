@@ -55,7 +55,7 @@ void loadLibSVMData(data::DataSet &data, const std::string &fName) {
 
 }
 
-void dataIO::loadLibSVMData(data::FeatureMatrix &fMatrix, const std::string &fName) {
+void loadLibSVMData(data::FeatureMatrix &fMatrix, const std::string &fName) {
 
 }
 

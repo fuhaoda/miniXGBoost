@@ -20,12 +20,41 @@ struct TreeNode {
   float weight{0.0f};
   float gain{0.0f};
 
+  // Default branch for missing value
+  bool missing_goto_right{true};
+
   size_t splitFeatureIndex{0};
   float splitValue{0};
 };
 
 //FullTreeNode contains the complete tree node information during model building stage.
 struct FullTreeNode:public TreeNode{
+float sum_grad{0};
+float sum_hess{0};
+
+// Sum of the gradient/hessian associated with the future child during split
+  // option enumeration.
+  float child_grad{0.0}, child_hess{0.0};
+
+  // Last feature value examined. Used to set the split value.
+  float last_value{0.0};
+
+  // Best score found when enumerating split options.
+  float best_score{-1e10};
+
+  // Reset stat
+  void reset();
+
+  // Update the best score.
+  void update(size_t index, float grad, float hess, float fvalue, float eps,
+              float thres, float lambda, float gamma, bool goto_right);
+
+  void update(size_t index, float delta, float thres, float lambda,
+              float gamma, bool goto_right);
+
+  // Return the weight of the tree node.
+  float weight(float lambda) { return -sum_grad / (sum_hess + lambda); }
+
 
 };
 

@@ -24,9 +24,9 @@ int main(int argc, char *argv[]) {
   miniXGBoost::data::DataSet trainingData(true);
   miniXGBoost::dataIO::loadLibSVMData(trainingData, param.trainDataPath);
 
-  // Training
+  miniXGBoost::MiniXGBoost myMiniXGBoost{};
 
-  //miniXGBoost::MiniXGBoost();
+  myMiniXGBoost.train(param, trainingData,func);
 
 
   // Evaluating

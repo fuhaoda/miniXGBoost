@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "../src/treeNodes.h"
+#include "../src/matrix.h"
 
 // Public APIs of the Gradient Boosting Method.
 
@@ -63,16 +64,17 @@ struct LossFunction {
 
 class MiniXGBoost {
  public:
-  MiniXGBoost(ModelParam &param, LossFunction &loss);
 
   // Train the model.
-  void train(const std::string &train_data) const;
+  void train(ModelParam &param, const miniXGBoost::data::DataSet &trainingData, const LossFunction
+  &loss);
 
   // Evaluate the trained model to testing data set.
-  void evaluate(const std::string &test_data, std::vector<float> &pred) const;
+  void evaluate(const miniXGBoost::data::DataSet &evaluationData, const LossFunction &loss);
 
   // use the feature matrix to predict the outcome
-  std::vector<float> predict(const std::string &featureMatrix);
+  std::vector<float> predict(const miniXGBoost::data::FeatureMatrix &featureMatrix, const LossFunction &loss);
+
 
  private:
   struct Model {

@@ -31,6 +31,7 @@ struct Entry {
 
 class SparseMatrix {
  public:
+  SparseMatrix()= default;
   explicit SparseMatrix(bool colAccess) : csc_{colAccess} {};
 
   // data[i] corresponds to the covariates of the ith sample. Only the
@@ -74,6 +75,7 @@ class SparseMatrix {
 
 // DataSet contains both response and features
 struct DataSet {
+  DataSet()= default;
   DataSet(bool colAccess) : csc{colAccess} {};
   std::vector<float> y{};
   SparseMatrix X{false};
