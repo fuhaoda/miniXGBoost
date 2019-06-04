@@ -210,7 +210,7 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
     for (const data::Entry *entry = cbegin; entry < cend; ++entry) {
       // Get current sample location.
       size_t row = entry->index;
-      int nidx = pos_[row];
+      int nidx = model_[tid][pos_[row]].parent;
 
       if (nidx < 0)
         continue;
