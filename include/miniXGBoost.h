@@ -30,7 +30,7 @@ struct ModelParam {
   // Maximum depth of each boosting tree. Depth 0 is the root layer.
   size_t max_depth = 3;
 
-  // Shrinkage factor. Each newly added weights will be shrinked by eta after
+  // Shrinkage factor. Each newly added weights will be shrinkage by eta after
   // each step of tree boosting, i.e., when a new layer of the tree is added.
   float shrinkage = 0.3;
 

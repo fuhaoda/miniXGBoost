@@ -191,18 +191,18 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       // consideration.
       pred_[i] += node.weight(param_.reg_weights);
       pos_[i] = -1;
+    } else {
+      pos_[i] = node.missing_goto_right ? node.rChild : node.lChild;
     }
-
+  }
     // Skip the else-branch. Ideally, we want to compare the ith sample's
     // feature value against the split value to assign its new
     // position. However, such random row access is inefficient for sparse
     // matrix storage. It is better to revisit each feature index that is
     // involved in the split and update.
-  }
 
-  for (size_t i = 0; i < split_index.size(); ++i) {
-    size_t col = split_index[i];
 
+  for (size_t col : split_index) {
     // Get the [begin, end) of the column
     const data::Entry *cbegin = data_.X.cbegin(col, true);
     const data::Entry *cend = data_.X.cend(col, true);
