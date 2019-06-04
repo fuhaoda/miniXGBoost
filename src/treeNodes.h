@@ -40,7 +40,7 @@ float sum_hess{0};
   float last_value{0.0};
 
   // Best score found when enumerating split options.
-  float best_score{-1e10};
+  float best_score{1e-10};
 
   // Reset stat
   void reset();

@@ -64,7 +64,8 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     auto nsplits = split(tid, first_node, last_node, split_index);
 
     // If no new split is required, terminate.
-    if (nsplits == 0) break;
+    if (nsplits == 0)
+      break;
 
     // Update sample position.
     updatePos(tid, split_index);
@@ -210,10 +211,11 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
     for (const data::Entry *entry = cbegin; entry < cend; ++entry) {
       // Get current sample location.
       size_t row = entry->index;
-      int nidx = model_[tid][pos_[row]].parent;
 
-      if (nidx < 0)
+      if (pos_[row] < 0)
         continue;
+
+      int nidx = model_[tid][pos_[row]].parent;
 
       TreeNode &node = model_[tid][nidx];
       float fvalue = entry->value;
