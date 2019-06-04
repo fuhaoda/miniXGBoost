@@ -40,7 +40,7 @@ class GBEstimator{
   float intercept_{};
   const data::DataSet & data_;
 
-  // Interal working buffers, holding the current predictions of the
+  // Internal working buffers, holding the current predictions of the
   // training data set, the gradient and hessian of the loss function
   // at each sample point.
   std::vector<float> pred_, grad_, hess_;
@@ -73,8 +73,7 @@ class GBEstimator{
 
   // Split the tree nodes. Count the number of splits and the collect
   // the set of feature indices used for the split.
-  void split(size_t tid, size_t first_node, size_t last_node,
-             int &nsplits, std::vector<size_t> &split_index);
+  size_t split(size_t tid, size_t first_node, size_t last_node, std::vector<size_t> &split_index);
 
   // Update sample locations. If the node a sample previously belongs
   // to is not split, update the prediction value of the sample. .

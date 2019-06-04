@@ -60,12 +60,11 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     findSplit(tid, first_node, last_node);
 
     // Perform splits.
-    int nsplits = 0;
     std::vector<size_t> split_index;
-    split(tid, first_node, last_node, nsplits, split_index);
+    auto nsplits = split(tid, first_node, last_node, split_index);
 
     // If no new split is required, terminate.
-    if (!nsplits) break;
+    if (nsplits == 0) break;
 
     // Update sample position.
     updatePos(tid, split_index);
@@ -77,7 +76,8 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     // Set the sum of gradient/hessian of the new leaf nodes.
     setNewNodes(tid);
   }
-
+  //todo save gain and weight into the nodes
+  model_[tid].resize(last_node);
 }
 
 void miniXGBoost::GBEstimator::findSplit(size_t tid, size_t first_node, size_t last_node) {
@@ -91,7 +91,7 @@ void miniXGBoost::GBEstimator::findSplit(size_t tid, size_t first_node, size_t l
               true, eps);
 
     // Backward enumeration.
-    enumSplit(tid, col, cend - 1, cbegin-1, -1, first_node, last_node,
+    enumSplit(tid, col, cend - 1, cbegin - 1, -1, first_node, last_node,
               false, -eps);
   }
 }
@@ -134,45 +134,45 @@ void miniXGBoost::GBEstimator::enumSplit(size_t tid, size_t findex,
 
   // The entire column is scanned. Do one final check because inside the for
   // loop each node does not know if the last value of the column has been
-  // read.
+  // read. (due to this requirement fabsf(fvalue - last_value) > eps)
   for (size_t iter = first_node; iter < last_node; ++iter)
     model_[tid][iter].update(findex, delta, param_.min_weight, param_.reg_weights,
                              param_.reg_nodes, goto_right);
 
 }
 
-void miniXGBoost::GBEstimator::split(size_t tid,
-                                     size_t first_node,
-                                     size_t last_node,
-                                     int &nsplits,
-                                     std::vector<size_t> &split_index) {
+size_t miniXGBoost::GBEstimator::split(size_t tid,
+                                       size_t first_node,
+                                       size_t last_node,
+                                       std::vector<size_t> &split_index) {
   // Within the current tree, [first_node, last_node) is the range of the
   // indices of the existing leaf nodes being examined. Any new leaf node will
   // be saved from index last_node onwards. The global index is obtained by
   // adding offset to the local index. The location to store the next new leaf
   // is tracked using variable curr.
+  size_t nsplits = 0;
   size_t curr = last_node;
 
   for (size_t iter = first_node; iter < last_node; ++iter) {
     TreeNode &pnode = model_[tid][iter];
     if (pnode.splitFeatureIndex != -1) {
-      nsplits++;
+      ++nsplits;
       split_index.push_back(pnode.splitFeatureIndex);
 
       // Configure child nodes. Save left child first.
       pnode.lChild = curr;
       model_[tid][curr].parent = iter;
-      curr++;
+      ++curr;
 
       pnode.rChild = curr;
       model_[tid][curr].parent = iter;
-      curr++;
+      ++curr;
     }
   }
 
   std::sort(split_index.begin(), split_index.end());
-  split_index.resize(std::unique(split_index.begin(), split_index.end()) -
-      split_index.begin());
+  split_index.erase(std::unique(split_index.begin(), split_index.end()), split_index.end());
+  return nsplits;
 }
 
 void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &split_index) {

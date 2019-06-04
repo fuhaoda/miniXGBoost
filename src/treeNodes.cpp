@@ -8,6 +8,7 @@
 void miniXGBoost::FullTreeNode::reset() {
   child_grad = child_hess = last_value = 0.0;
 }
+
 void miniXGBoost::FullTreeNode::update(size_t index,
                                        float grad,
                                        float hess,
@@ -45,6 +46,7 @@ void miniXGBoost::FullTreeNode::update(size_t index,
   child_hess += hess;
   last_value = fvalue;
 }
+
 void miniXGBoost::FullTreeNode::update(size_t index,
                                        float delta,
                                        float thres,
@@ -61,7 +63,7 @@ void miniXGBoost::FullTreeNode::update(size_t index,
         pow(other_grad, 2) / (other_hess + lambda) -
         pow(sum_grad, 2) / (sum_hess + lambda);
 
-    loss_change = loss_change / 2 - gamma;
+    loss_change = loss_change / 2.0f - gamma;
 
     if (loss_change > best_score) {
       splitFeatureIndex  = index;

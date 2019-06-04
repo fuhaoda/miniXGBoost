@@ -23,7 +23,7 @@ struct TreeNode {
   // Default branch for missing value
   bool missing_goto_right{true};
 
-  size_t splitFeatureIndex{0};
+  int splitFeatureIndex{-1};
   float splitValue{0};
 };
 
