@@ -55,7 +55,8 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
   size_t last_node = 1;
 
   // Construct the tree
-  for (size_t depth = 0; depth < param_.max_depth; ++depth) {
+  size_t depth = 0;
+  for (; depth < param_.max_depth; ++depth) {
     // Find split index/value
     findSplit(tid, first_node, last_node);
 
@@ -64,8 +65,10 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     auto nsplits = split(tid, first_node, last_node, split_index);
 
     // If no new split is required, terminate.
-    if (nsplits == 0)
+    if (nsplits == 0){
+      completeGBTree(tid);
       break;
+    }
 
     // Update sample position.
     updatePos(tid, split_index);
@@ -77,8 +80,13 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     // Set the sum of gradient/hessian of the new leaf nodes.
     setNewNodes(tid);
   }
-  //todo save gain and weight into the nodes
+
+  // if the tree build in full depth, set the final nodes as leaves
+  if (depth == param_.max_depth )
+    completeGBTree(tid);
+
   model_[tid].resize(last_node);
+  saveWeightGain(tid);
 }
 
 void miniXGBoost::GBEstimator::findSplit(size_t tid, size_t first_node, size_t last_node) {
@@ -190,7 +198,7 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       // The node remains leaf. Add the correction from the current boosting
       // tree to the prediction and mark pos to -1 to skip further
       // consideration.
-      pred_[i] += node.weight(param_.reg_weights);
+      pred_[i] += node.calWeight(param_.reg_weights);
       pos_[i] = -1;
     } else {
       pos_[i] = node.missing_goto_right ? node.rChild : node.lChild;
@@ -238,5 +246,24 @@ void miniXGBoost::GBEstimator::setNewNodes(size_t tid) {
 
     model_[tid][nidx].sum_grad += grad_[i];
     model_[tid][nidx].sum_hess += hess_[i];
+  }
+}
+void miniXGBoost::GBEstimator::completeGBTree(size_t tid) {
+  for (size_t i = 0; i < pred_.size(); ++i) {
+    int nidx = pos_[i];
+
+    if (nidx < 0)
+      continue;
+    // Get a handle of the tree node.
+    FullTreeNode &node = model_[tid][nidx];
+    pred_[i] += node.calWeight(param_.reg_weights);
+   // Since we complete tree after this, we do not need to reset pos_[i]=-1.
+  }
+}
+
+void miniXGBoost::GBEstimator::saveWeightGain(size_t tid) {
+  for(FullTreeNode & node:model_[tid]){
+    node.weight = node.calWeight(param_.reg_weights);
+    node.gain = node.best_score;
   }
 }

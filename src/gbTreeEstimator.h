@@ -81,6 +81,12 @@ class GBEstimator{
 
   // Set the sum of gradient/hessian in the newly created leaf nodes.
   void setNewNodes(size_t tid);
+
+  // When there is no new split, put all the values into corresponding leaves
+  void completeGBTree(size_t tid);
+
+  // Save key statistics into the TreeNode
+  void saveWeightGain(size_t tid);
 };
 
 }  // namespace miniXGBoost

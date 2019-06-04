@@ -16,8 +16,9 @@ struct TreeNode {
   int lChild{-1};
   int rChild{-1};
 
-  //weight and gain
+  // weight and gain
   float weight{0.0f};
+  // if this node is split, what additional value. eq 7 in the original paper.
   float gain{0.0f};
 
   // Default branch for missing value
@@ -29,18 +30,18 @@ struct TreeNode {
 
 //FullTreeNode contains the complete tree node information during model building stage.
 struct FullTreeNode:public TreeNode{
-float sum_grad{0};
-float sum_hess{0};
+float sum_grad{0.0f};
+float sum_hess{0.0f};
 
 // Sum of the gradient/hessian associated with the future child during split
   // option enumeration.
-  float child_grad{0.0}, child_hess{0.0};
+  float child_grad{0.0f}, child_hess{0.0f};
 
   // Last feature value examined. Used to set the split value.
-  float last_value{0.0};
+  float last_value{0.0f};
 
   // Best score found when enumerating split options.
-  float best_score{1e-10};
+  float best_score{0.0f};
 
   // Reset stat
   void reset();
@@ -53,7 +54,7 @@ float sum_hess{0};
               float gamma, bool goto_right);
 
   // Return the weight of the tree node.
-  float weight(float lambda) { return -sum_grad / (sum_hess + lambda); }
+  float calWeight(float lambda) { return -sum_grad / (sum_hess + lambda); }
 
 
 };
