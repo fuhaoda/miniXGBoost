@@ -101,7 +101,7 @@ struct ModelParam {
   size_t num_round{10};
   float reg_lambda{1};
   size_t max_depth{3}; //including the root layer
-  float learning_rate{0.3};
+  float learning_rate{1.0f};
   size_t minSamplePerNode{3};
   //less important parameters below
   float min_child_weight{1.0};
