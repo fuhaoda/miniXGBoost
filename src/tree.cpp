@@ -206,6 +206,25 @@ void xgboost::tree::GBSingleTreeGenerator::enumerateSplit(Iter iter,
     }
   }
 
+  for(int nid : qexpand_){
+    TreeNode &e = newGBTree_.at(nid);
+    const float csum_hess = e.sumHess - e.sumSomeHess;
+
+    if( e.sumSomeHess >= param_.min_child_weight && csum_hess >= param_.min_child_weight ){
+      const float csum_grad = e.sumGrad - e.sumSomeGrad;
+      const float loss_chg =
+          e.getSomeGain(e.sumSomeGrad, e.sumSomeHess, param_.reg_lambda)
+              + e.getSomeGain(csum_grad, csum_hess, param_.reg_lambda)
+              - e.gain;
+
+      e.updateBest(loss_chg,
+                   featureID,
+                   e.lastSplitValue,
+                   missingGoToRight,
+                   param_.split_eps);
+    }
+  }
+
 }
 
 void xgboost::tree::GBSingleTreeGenerator::addChilds(size_t nodeID) {
