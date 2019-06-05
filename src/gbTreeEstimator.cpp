@@ -32,7 +32,6 @@ void miniXGBoost::GBEstimator::train() {
     // Build a new tree and adjust prediction.
     createGBTree(k, sum_grad, sum_hess);
   }
-
 }
 
 void miniXGBoost::GBEstimator::computeGradientHessian(float &sum_grad, float &sum_hess) {
@@ -137,7 +136,7 @@ void miniXGBoost::GBEstimator::enumSplit(size_t tid, size_t findex,
       node.last_value = fvalue;
     } else {
       node.update(findex, grad_[row], hess_[row], fvalue, eps2,
-                  param_.min_weight, param_.reg_weights, param_.reg_nodes, goto_right);
+                  param_.min_weight, param_.reg_weights, param_.reg_nodes, goto_right, delta);
     }
   }
 

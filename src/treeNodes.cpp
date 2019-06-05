@@ -17,7 +17,8 @@ void miniXGBoost::FullTreeNode::update(size_t index,
                                        float thres,
                                        float lambda,
                                        float gamma,
-                                       bool goto_right) {
+                                       bool goto_right,
+                                       float delta) {
   // Compute the sum of gradient/hessian that would go to the other child node.
   double other_grad = sum_grad - child_grad;
   double other_hess = sum_hess - child_hess;
@@ -36,7 +37,7 @@ void miniXGBoost::FullTreeNode::update(size_t index,
 
     if (loss_change > best_score) {
       splitFeatureIndex = index;
-      splitValue = 0.5f * (last_value + fvalue);
+      splitValue = 0.5f * (last_value + fvalue)+delta;
       best_score = loss_change;
       missing_goto_right = goto_right;
     }
