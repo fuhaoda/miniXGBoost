@@ -226,6 +226,9 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       int nidx = model_[tid][pos_[row]].parent;
 
       TreeNode &node = model_[tid][nidx];
+
+      if(node.splitFeatureIndex!=col) continue;
+
       float fvalue = entry->value;
 
       if (fvalue < node.splitValue) {
