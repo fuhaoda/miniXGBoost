@@ -137,7 +137,7 @@ xgboost::tree::TreeNode::updateBest(float loss_chg,
                                     float split_value,
                                     bool missing_GoToRight,
                                     float eps) {
-  if (bestScore > loss_chg) return false;
+  if (bestScore >= loss_chg) return false;
   bestScore = loss_chg;
   splitIndex = split_index;
   splitValue = missing_GoToRight ? split_value + eps : split_value - eps;
