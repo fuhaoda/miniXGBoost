@@ -69,6 +69,7 @@ void miniXGBoost::FullTreeNode::update(size_t index,
       splitFeatureIndex  = index;
       splitValue = last_value + delta;
       missing_goto_right = goto_right;
+      best_score = loss_change; 
     }
   }
 }
