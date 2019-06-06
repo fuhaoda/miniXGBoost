@@ -48,7 +48,7 @@ float sum_hess{0.0f};
 
   // Update the best score.
   void update(size_t index, float grad, float hess, float fvalue, float eps,
-              float thres, float lambda, float gamma, bool goto_right,float delta);
+              float thres, float lambda, float gamma, bool goto_right);
 
   void update(size_t index, float delta, float thres, float lambda,
               float gamma, bool goto_right);

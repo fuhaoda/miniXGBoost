@@ -136,7 +136,7 @@ void miniXGBoost::GBEstimator::enumSplit(size_t tid, size_t findex,
       node.last_value = fvalue;
     } else {
       node.update(findex, grad_[row], hess_[row], fvalue, eps2,
-                  param_.min_weight, param_.reg_weights, param_.reg_nodes, goto_right, delta);
+                  param_.min_weight, param_.reg_weights, param_.reg_nodes, goto_right);
     }
   }
 
