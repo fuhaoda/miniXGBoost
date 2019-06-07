@@ -30,7 +30,7 @@ dataFormat = LIBSVM
 data.train = "train.txt"
 
 # The path of evaluate data which contains both feature matrix and responses
-data.eval = "test.txt"
+data.eval = "test_debug.txt"
 
 # The path of predict data set which only contains features
 data.pred = "predict.txt"

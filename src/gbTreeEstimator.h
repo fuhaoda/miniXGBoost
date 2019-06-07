@@ -19,9 +19,16 @@ class GBEstimator{
   // Train the model.
   void train();
 
-  //
+  // return the model - model contains two parts, the intercept and additive tree models
   const std::vector<std::vector<FullTreeNode>> & getModel() const {return model_;}
   const float getIntercept() const {return intercept_;}
+
+  // return the predicted values
+  const std::vector<float> &getPredictedValuesOnTrainingData() const;
+
+  // return the loss on the training data set, e.g. square error loss, deviance loss etc..
+  float trainingLoss() const;
+
  private:
   // Parameter controlling floating point precision.
   const float eps{1e-5}, eps2{2e-5};

@@ -8,7 +8,7 @@
 // Template for writing customized loss function
 
 inline float squaredErrorLoss(float y, float yhat) {
-  return (y - yhat) * (y - yhat) / 0.5f;
+  return (y - yhat) * (y - yhat) / 2.0f;
 }
 
 inline float squaredErrorGradient(float y, float yhat) {

@@ -61,6 +61,10 @@ struct LossFunction {
 };
 
 // Part #3: MiniXGBoost Method Model
+struct Model {
+  float intercept{0};
+  std::vector<std::vector<TreeNode>> trees{};
+};
 
 class MiniXGBoost {
  public:
@@ -70,17 +74,17 @@ class MiniXGBoost {
   &loss);
 
   // Evaluate the trained model to testing data set.
-  void evaluate(const miniXGBoost::data::DataSet &evaluationData, const LossFunction &loss);
+  void evaluate(const miniXGBoost::data::DataSet &evaluationData, const Model &model, const
+  LossFunction &loss);
 
   // use the feature matrix to predict the outcome
   std::vector<float> predict(const miniXGBoost::data::FeatureMatrix &featureMatrix, const LossFunction &loss);
 
+  const Model &getModel() const;
 
  private:
-  struct Model {
-    float intercept{0};
-    std::vector<std::vector<TreeNode>> trees{};
-  } model_;
+  Model model_;
+
 };
 
 ModelParam configFileParser(const std::string &config_file);

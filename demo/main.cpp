@@ -27,12 +27,15 @@ int main(int argc, char *argv[]) {
   miniXGBoost::MiniXGBoost myMiniXGBoost{};
 
   myMiniXGBoost.train(param, trainingData,func);
+  auto model = myMiniXGBoost.getModel();
 
 
-  // Evaluating
+
   miniXGBoost::data::DataSet evaluatingData(false);
-  // Prediction
-  miniXGBoost::data::FeatureMatrix featureMatrix(false);
+  miniXGBoost::dataIO::loadLibSVMData(evaluatingData, param.evalDataPath);
+  myMiniXGBoost.evaluate(evaluatingData,model, func);
+
+
 
   return 0;
 }

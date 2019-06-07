@@ -4,6 +4,7 @@
 
 #include "miniXGBoost.h"
 #include "gbTreeEstimator.h"
+#include "gbTreeEvaluator.h"
 
 void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
                                      const miniXGBoost::data::DataSet &trainingData,
@@ -23,15 +24,26 @@ void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
 
   // save the intercept
   model_.intercept = gbmModel.getIntercept();
+
+  auto x = gbmModel.trainingLoss();
+  int stop =1;
 }
 
 
 void miniXGBoost::MiniXGBoost::evaluate(const miniXGBoost::data::DataSet &evaluationData,
-                                        const miniXGBoost::LossFunction &loss) {
+                                        const Model &model, const miniXGBoost::LossFunction &loss) {
 
+GBEvaluator gbmEvaluator(evaluationData,model,loss);
+
+auto lossValue = gbmEvaluator.getLoss();
+
+int stop = 1;
 }
 std::vector<float> miniXGBoost::MiniXGBoost::predict(const miniXGBoost::data::FeatureMatrix &featureMatrix,
                                                      const miniXGBoost::LossFunction &loss) {
   return std::vector<float>();
+}
+const miniXGBoost::Model &miniXGBoost::MiniXGBoost::getModel() const {
+  return model_;
 }
 

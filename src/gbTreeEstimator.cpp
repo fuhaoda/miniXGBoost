@@ -269,3 +269,16 @@ void miniXGBoost::GBEstimator::saveWeightGain(size_t tid) {
     node.gain = node.best_score;
   }
 }
+
+const std::vector<float> &miniXGBoost::GBEstimator::getPredictedValuesOnTrainingData() const {
+  return pred_;
+}
+
+
+float miniXGBoost::GBEstimator::trainingLoss() const {
+  float loss{0.0f};
+  for(size_t i=0; i< pred_.size();++i){
+    loss+=func_.loss(data_.y[i], pred_[i]);
+  }
+  return loss;
+}
