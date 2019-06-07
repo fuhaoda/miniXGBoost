@@ -26,7 +26,7 @@ void miniXGBoost::GBPredictor::singleTreePrediction(const std::vector<miniXGBoos
     size_t nid = 0;
 
     //  continue search until reach to the leaf, i.e. splitFeatureIndex == -1
-    while (tree[nid].splitFeatureIndex > 0) {
+    while (tree[nid].splitFeatureIndex >= 0) {
       for (auto iter = cbegin; iter != cend; ++iter) {
         if (iter->index == tree[nid].splitFeatureIndex) {
           nid = iter->value < tree[nid].splitValue ? tree[nid].lChild : tree[nid].rChild;

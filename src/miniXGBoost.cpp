@@ -9,7 +9,7 @@
 void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
                                      const miniXGBoost::data::DataSet &trainingData,
                                      const miniXGBoost::LossFunction &loss) {
-  GBEstimator gbmModel(param, trainingData,loss);
+  GBEstimator gbmModel(param, trainingData, loss);
   gbmModel.train();
   auto model = gbmModel.getModel();
 
@@ -25,23 +25,28 @@ void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
   // save the intercept
   model_.intercept = gbmModel.getIntercept();
 
-  auto x = gbmModel.trainingLoss();
-  int stop =1;
-}
+  // loss from training data
+  trainingLoss_=gbmModel.trainingLoss();
 
+  // predicted value on training data set (this is a copy assignment, might be expensive)
+  yhatFromTrainingData_ = gbmModel.getPredictedValuesOnTrainingData();
+}
 
 void miniXGBoost::MiniXGBoost::evaluate(const miniXGBoost::data::DataSet &evaluationData,
                                         const Model &model, const miniXGBoost::LossFunction &loss) {
+  GBEvaluator gbmEvaluator(evaluationData, model, loss);
+  evaluationLoss_=gbmEvaluator.getLoss();
 
-GBEvaluator gbmEvaluator(evaluationData,model,loss);
-
-auto lossValue = gbmEvaluator.getLoss();
-
-int stop = 1;
+  // predict value based on feature matrix (this is a copy assignment, might be expensive)
+  yhat_= gbmEvaluator.predict();
 }
 std::vector<float> miniXGBoost::MiniXGBoost::predict(const miniXGBoost::data::FeatureMatrix &featureMatrix,
-                                                     const miniXGBoost::LossFunction &loss) {
-  return std::vector<float>();
+                                                     const Model &model) {
+  GBPredictor gbmPredictor(featureMatrix, model);
+
+  // perfect forwarding. return predicted values
+  return gbmPredictor.predict();
+
 }
 const miniXGBoost::Model &miniXGBoost::MiniXGBoost::getModel() const {
   return model_;

@@ -78,12 +78,16 @@ class MiniXGBoost {
   LossFunction &loss);
 
   // use the feature matrix to predict the outcome
-  std::vector<float> predict(const miniXGBoost::data::FeatureMatrix &featureMatrix, const LossFunction &loss);
+  std::vector<float> predict(const miniXGBoost::data::FeatureMatrix &featureMatrix, const Model &model);
 
   const Model &getModel() const;
 
  private:
   Model model_;
+  float trainingLoss_;
+  std::vector<float> yhatFromTrainingData_;
+  std::vector<float> yhat_;
+  float evaluationLoss_;
 
 };
 
