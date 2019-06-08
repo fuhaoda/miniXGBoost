@@ -9,7 +9,7 @@
 #include "../src/matrix.h"
 
 //
-// Usage: ./demo config train.txt
+// Usage: ./demo config
 //
 
 
