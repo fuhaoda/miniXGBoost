@@ -14,6 +14,7 @@
 
 
 int main(int argc, char *argv[]) {
+
   // Parse the configuration file to get model parameters.
   miniXGBoost::ModelParam param = miniXGBoost::configFileParser(argv[1]);
 
@@ -22,17 +23,20 @@ int main(int argc, char *argv[]) {
 
   // Load training data with column access support
   miniXGBoost::data::DataSet trainingData(true);
-  miniXGBoost::dataIO::loadLibSVMData(trainingData, param.trainDataPath);
+
+  miniXGBoost::dataIO::loadCSVData(trainingData, param.trainDataPath);
+
+  //miniXGBoost::dataIO::loadLibSVMData(trainingData, param.trainDataPath);
 
   miniXGBoost::MiniXGBoost myMiniXGBoost{};
 
   myMiniXGBoost.train(param, trainingData,func);
   auto model = myMiniXGBoost.getModel();
 
-
-
   miniXGBoost::data::DataSet evaluatingData(false);
-  miniXGBoost::dataIO::loadLibSVMData(evaluatingData, param.evalDataPath);
+
+  miniXGBoost::dataIO::loadCSVData(evaluatingData, param.evalDataPath);
+  //miniXGBoost::dataIO::loadLibSVMData(evaluatingData, param.evalDataPath);
   myMiniXGBoost.evaluate(evaluatingData,model, func);
 
 

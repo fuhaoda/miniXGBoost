@@ -198,7 +198,7 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       // The node remains leaf. Add the correction from the current boosting
       // tree to the prediction and mark pos to -1 to skip further
       // consideration.
-      pred_[i] += node.calWeight(param_.reg_weights);
+      pred_[i] += param_.shrinkage*node.calWeight(param_.reg_weights);
       pos_[i] = -1;
     } else {
       pos_[i] = node.missing_goto_right ? node.rChild : node.lChild;
@@ -259,14 +259,14 @@ void miniXGBoost::GBEstimator::completeGBTree(size_t tid) {
       continue;
     // Get a handle of the tree node.
     FullTreeNode &node = model_[tid][nidx];
-    pred_[i] += node.calWeight(param_.reg_weights);
+    pred_[i] += param_.shrinkage*node.calWeight(param_.reg_weights);
     // Since we complete tree after this, we do not need to reset pos_[i]=-1.
   }
 }
 
 void miniXGBoost::GBEstimator::saveWeightGain(size_t tid) {
   for (FullTreeNode &node:model_[tid]) {
-    node.weight = node.calWeight(param_.reg_weights);
+    node.weight = param_.shrinkage*node.calWeight(param_.reg_weights);
     node.gain = node.best_score;
   }
 }
