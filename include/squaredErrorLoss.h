@@ -6,6 +6,7 @@
 #define MINIXGBOOST_INCLUDE_SQUAREDERRORLOSS_H_
 
 // Template for writing customized loss function
+// SquaredErrorLoss is often used for regression problem
 
 inline float squaredErrorLoss(float y, float yhat) {
   return (y - yhat) * (y - yhat) / 2.0f;

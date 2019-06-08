@@ -94,6 +94,9 @@ class GBEstimator{
 
   // Save key statistics into the TreeNode
   void saveWeightGain(size_t tid);
+
+  // Solve intercept using Newton method (i.e. find a const to minimize loss function)
+  float calculateIntercept(float x0);
 };
 
 }  // namespace miniXGBoost

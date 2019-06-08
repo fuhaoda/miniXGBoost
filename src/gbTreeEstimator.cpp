@@ -4,10 +4,11 @@
 
 #include <numeric>
 #include "gbTreeEstimator.h"
+#include <cmath>
 
 void miniXGBoost::GBEstimator::train() {
-  intercept_ = std::accumulate(data_.y.begin(), data_.y.end(), 0.0f) / static_cast<float>(data_.y
-      .size());
+  intercept_ = calculateIntercept(std::accumulate(data_.y.begin(), data_.y.end(), 0.0f) / static_cast<float>(data_.y
+      .size()));
 
   model_.clear();
   model_.resize(param_.nTrees, std::vector<FullTreeNode>(max_nodes_));
@@ -281,4 +282,26 @@ float miniXGBoost::GBEstimator::trainingLoss() const {
   }
   loss /= static_cast<float>(pred_.size());
   return loss;
+}
+
+//  Use Newton method to find a const value which can best fit for the loss function. Like in
+//  other models, we often do not penalize the intercept. The initial value is chosen using the
+//  overall mean.
+
+float miniXGBoost::GBEstimator::calculateIntercept(float x0) {
+  float x1{0};
+
+  while(fabs(x0-x1) > eps2){
+    float grad{0};
+    float hess{0};
+    for(auto const & yi: data_.y){
+      grad+=func_.grad(yi,x0);
+      hess+=func_.hess(yi,x0);
+    }
+    float temp=x1;
+    x1=x0-grad/hess;
+    x0=temp;
+  }
+
+  return x1;
 }
