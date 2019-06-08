@@ -26,7 +26,7 @@ void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
   model_.intercept = gbmModel.getIntercept();
 
   // loss from training data
-  trainingLoss_=gbmModel.trainingLoss();
+  trainingLoss_ = gbmModel.trainingLoss();
 
   // predicted value on training data set (this is a copy assignment, might be expensive)
   yhatFromTrainingData_ = gbmModel.getPredictedValuesOnTrainingData();
@@ -35,10 +35,10 @@ void miniXGBoost::MiniXGBoost::train(miniXGBoost::ModelParam &param,
 void miniXGBoost::MiniXGBoost::evaluate(const miniXGBoost::data::DataSet &evaluationData,
                                         const Model &model, const miniXGBoost::LossFunction &loss) {
   GBEvaluator gbmEvaluator(evaluationData, model, loss);
-  evaluationLoss_=gbmEvaluator.getLoss();
+  evaluationLoss_ = gbmEvaluator.getLoss();
 
   // predict value based on feature matrix (this is a copy assignment, might be expensive)
-  yhat_= gbmEvaluator.predict();
+  yhat_ = gbmEvaluator.predict();
 }
 std::vector<float> miniXGBoost::MiniXGBoost::predict(const miniXGBoost::data::FeatureMatrix &featureMatrix,
                                                      const Model &model) {

@@ -14,5 +14,8 @@ add_custom_command(
        COMMAND ${CMAKE_COMMAND} -E copy
        ${CMAKE_SOURCE_DIR}/demo/test_debug.txt
        ${CMAKE_CURRENT_BINARY_DIR}/test_debug.txt
+       COMMAND ${CMAKE_COMMAND} -E copy
+       ${CMAKE_SOURCE_DIR}/demo/test.txt
+       ${CMAKE_CURRENT_BINARY_DIR}/test.txt
 )
 ]]

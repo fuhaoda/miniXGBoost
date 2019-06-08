@@ -13,6 +13,6 @@ float miniXGBoost::GBEvaluator::getLoss() {
   for (size_t i = 0; i < yhat.size(); ++i) {
     loss += fun_.loss(y_[i], yhat[i]);
   }
-
+  loss /= static_cast<float>(yhat.size());
   return loss;
 }

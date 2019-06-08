@@ -76,7 +76,7 @@ class SparseMatrix {
 // DataSet contains both response and features
 struct DataSet {
   DataSet()= default;
-  DataSet(bool colAccess) : csc{colAccess} {};
+  explicit DataSet(bool colAccess) : csc{colAccess} {};
   std::vector<float> y{};
   SparseMatrix X{false};
   bool csc{false};

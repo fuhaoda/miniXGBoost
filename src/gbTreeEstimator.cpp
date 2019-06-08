@@ -64,7 +64,7 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
     auto nsplits = split(tid, first_node, last_node, split_index);
 
     // If no new split is required, terminate.
-    if (nsplits == 0){
+    if (nsplits == 0) {
       completeGBTree(tid);
       break;
     }
@@ -81,7 +81,7 @@ void miniXGBoost::GBEstimator::createGBTree(size_t tid, float sum_grad, float su
   }
 
   // if the tree build in full depth, set the final nodes as leaves
-  if (depth == param_.max_depth )
+  if (depth == param_.max_depth)
     completeGBTree(tid);
 
   model_[tid].resize(last_node);
@@ -203,11 +203,11 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       pos_[i] = node.missing_goto_right ? node.rChild : node.lChild;
     }
   }
-    // Skip the else-branch. Ideally, we want to compare the ith sample's
-    // feature value against the split value to assign its new
-    // position. However, such random row access is inefficient for sparse
-    // matrix storage. It is better to revisit each feature index that is
-    // involved in the split and update.
+  // Skip the else-branch. Ideally, we want to compare the ith sample's
+  // feature value against the split value to assign its new
+  // position. However, such random row access is inefficient for sparse
+  // matrix storage. It is better to revisit each feature index that is
+  // involved in the split and update.
 
 
   for (size_t col : split_index) {
@@ -226,7 +226,7 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
 
       TreeNode &node = model_[tid][nidx];
 
-      if(node.splitFeatureIndex!=col) continue;
+      if (node.splitFeatureIndex != col) continue;
 
       float fvalue = entry->value;
 
@@ -259,12 +259,12 @@ void miniXGBoost::GBEstimator::completeGBTree(size_t tid) {
     // Get a handle of the tree node.
     FullTreeNode &node = model_[tid][nidx];
     pred_[i] += node.calWeight(param_.reg_weights);
-   // Since we complete tree after this, we do not need to reset pos_[i]=-1.
+    // Since we complete tree after this, we do not need to reset pos_[i]=-1.
   }
 }
 
 void miniXGBoost::GBEstimator::saveWeightGain(size_t tid) {
-  for(FullTreeNode & node:model_[tid]){
+  for (FullTreeNode &node:model_[tid]) {
     node.weight = node.calWeight(param_.reg_weights);
     node.gain = node.best_score;
   }
@@ -274,11 +274,11 @@ const std::vector<float> &miniXGBoost::GBEstimator::getPredictedValuesOnTraining
   return pred_;
 }
 
-
 float miniXGBoost::GBEstimator::trainingLoss() const {
   float loss{0.0f};
-  for(size_t i=0; i< pred_.size();++i){
-    loss+=func_.loss(data_.y[i], pred_[i]);
+  for (size_t i = 0; i < pred_.size(); ++i) {
+    loss += func_.loss(data_.y[i], pred_[i]);
   }
+  loss /= static_cast<float>(pred_.size());
   return loss;
 }
