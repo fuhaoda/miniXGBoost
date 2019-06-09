@@ -6,22 +6,22 @@
 # Task parameters
 # the number of round to do boosting num_round in the original XGBoost, and K in eq (1)
 # i.e. number of trees for each model
-nTrees = 10
+nTrees = 500
 
 # maximum depth of a tree
 max_depth = 3
 
 # gamma parameter in eq (2). It is minimum loss reduction required to make a further partition
-reg_nodes = 1.0
+reg_nodes = 0.0
 
 # lambda parameter in eq (2). It penalized the weights in each leaf
-reg_weights = 1.0
+reg_weights = 0.1
 
 # step size shrinkage parameter eta
-shrinkage = 1.0
+shrinkage = 0.1
 
 # minimum sum of instance weight(hessian) needed in a child
-min_weight = 1.0
+min_weight = 0.1
 
 # Feature matrix data format, support LIBSVM, CSV...
 dataFormat = LIBSVM
