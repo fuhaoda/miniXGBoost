@@ -3,6 +3,7 @@
 //
 
 #include "matrix.h"
+#include <algorithm>
 
 void miniXGBoost::data::SparseMatrix::clear() {
   row_ptr_.clear();

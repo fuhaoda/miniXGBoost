@@ -1,4 +1,3 @@
-#include <utility>
 
 //
 // Created by Haoda Fu on 2019-06-06.
@@ -10,6 +9,7 @@
 #include <vector>
 #include "miniXGBoost.h"
 #include "matrix.h"
+
 
 namespace miniXGBoost {
 class GBPredictor {

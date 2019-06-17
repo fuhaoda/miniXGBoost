@@ -5,6 +5,7 @@
 #include <numeric>
 #include "gbTreeEstimator.h"
 #include <cmath>
+#include <algorithm>
 
 void miniXGBoost::GBEstimator::train() {
   intercept_ = calculateIntercept(std::accumulate(data_.y.begin(), data_.y.end(), 0.0f) / static_cast<float>(data_.y
@@ -291,7 +292,7 @@ float miniXGBoost::GBEstimator::trainingLoss() const {
 float miniXGBoost::GBEstimator::calculateIntercept(float x0) {
   float x1{0};
 
-  while(fabs(x0-x1) > eps2){
+  while(std::abs(x0-x1) > eps2){
     float grad{0};
     float hess{0};
     for(auto const & yi: data_.y){

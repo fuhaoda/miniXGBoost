@@ -38,7 +38,7 @@ struct ModelParam {
   float min_weight = 1.0;
 
   // Input data file format
-  enum DataFileFormat{libsvm, csv};
+  enum class DataFileFormat{libsvm, csv};
   DataFileFormat featureMatrixFileType= DataFileFormat::libsvm;
 
   // Training data path
