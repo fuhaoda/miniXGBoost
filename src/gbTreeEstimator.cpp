@@ -8,8 +8,9 @@
 #include <algorithm>
 
 void miniXGBoost::GBEstimator::train() {
-  intercept_ = calculateIntercept(std::accumulate(data_.y.begin(), data_.y.end(), 0.0f) / static_cast<float>(data_.y
-      .size()));
+  intercept_ = calculateIntercept(
+      std::accumulate(data_.y.begin(), data_.y.end(), 0.0f) / static_cast<float>(data_.y
+          .size()));
 
   model_.clear();
   model_.resize(param_.nTrees, std::vector<FullTreeNode>(max_nodes_));
@@ -199,7 +200,7 @@ void miniXGBoost::GBEstimator::updatePos(size_t tid, const std::vector<size_t> &
       // The node remains leaf. Add the correction from the current boosting
       // tree to the prediction and mark pos to -1 to skip further
       // consideration.
-      pred_[i] += param_.shrinkage*node.calWeight(param_.reg_weights);
+      pred_[i] += param_.shrinkage * node.calWeight(param_.reg_weights);
       pos_[i] = -1;
     } else {
       pos_[i] = node.missing_goto_right ? node.rChild : node.lChild;
@@ -260,14 +261,14 @@ void miniXGBoost::GBEstimator::completeGBTree(size_t tid) {
       continue;
     // Get a handle of the tree node.
     FullTreeNode &node = model_[tid][nidx];
-    pred_[i] += param_.shrinkage*node.calWeight(param_.reg_weights);
+    pred_[i] += param_.shrinkage * node.calWeight(param_.reg_weights);
     // Since we complete tree after this, we do not need to reset pos_[i]=-1.
   }
 }
 
 void miniXGBoost::GBEstimator::saveWeightGain(size_t tid) {
   for (FullTreeNode &node:model_[tid]) {
-    node.weight = param_.shrinkage*node.calWeight(param_.reg_weights);
+    node.weight = param_.shrinkage * node.calWeight(param_.reg_weights);
     node.gain = node.best_score;
   }
 }
@@ -292,16 +293,16 @@ float miniXGBoost::GBEstimator::trainingLoss() const {
 float miniXGBoost::GBEstimator::calculateIntercept(float x0) {
   float x1{0};
 
-  while(std::abs(x0-x1) > eps2){
+  while (std::abs(x0 - x1) > eps2) {
     float grad{0};
     float hess{0};
-    for(auto const & yi: data_.y){
-      grad+=func_.grad(yi,x0);
-      hess+=func_.hess(yi,x0);
+    for (auto const &yi: data_.y) {
+      grad += func_.grad(yi, x0);
+      hess += func_.hess(yi, x0);
     }
-    float temp=x1;
-    x1=x0-grad/hess;
-    x0=temp;
+    float temp = x1;
+    x1 = x0 - grad / hess;
+    x0 = temp;
   }
 
   return x1;

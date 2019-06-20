@@ -10,7 +10,6 @@
 #include "miniXGBoost.h"
 #include "matrix.h"
 
-
 namespace miniXGBoost {
 class GBPredictor {
  public:
@@ -24,7 +23,7 @@ class GBPredictor {
  private:
   const data::FeatureMatrix &fMatrix_;
   const Model &model_;
-  void singleTreePrediction(const std::vector<TreeNode> & tree, std::vector<float> & prediction);
+  void singleTreePrediction(const std::vector<TreeNode> &tree, std::vector<float> &prediction);
 };
 }
 

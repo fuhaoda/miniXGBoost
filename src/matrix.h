@@ -31,7 +31,7 @@ struct Entry {
 
 class SparseMatrix {
  public:
-  SparseMatrix()= default;
+  SparseMatrix() = default;
   explicit SparseMatrix(bool colAccess) : csc_{colAccess} {};
 
   // data[i] corresponds to the covariates of the ith sample. Only the
@@ -49,10 +49,8 @@ class SparseMatrix {
   // Return one entry pass the end of a row/column.
   const Entry *cend(size_t i, bool column = false) const;
 
-
-
   // Add a row in SparseMatrix and return last row index
-  size_t addOneRow(const std::vector<Entry> & oneRow);
+  size_t addOneRow(const std::vector<Entry> &oneRow);
   void clear();
   void translateToCSCFormat();
 
@@ -71,11 +69,9 @@ class SparseMatrix {
   std::vector<Entry> col_data_{};
 };
 
-
-
 // DataSet contains both response and features
 struct DataSet {
-  DataSet()= default;
+  DataSet() = default;
   explicit DataSet(bool colAccess) : csc{colAccess} {};
   std::vector<float> y{};
   SparseMatrix X{false};

@@ -14,13 +14,12 @@ void miniXGBoost::data::SparseMatrix::clear() {
 }
 
 size_t miniXGBoost::data::SparseMatrix::addOneRow(const std::vector<miniXGBoost::data::Entry> &
-    oneRow) {
-  row_data_.insert(row_data_.end(),oneRow.begin(),oneRow.end());
+oneRow) {
+  row_data_.insert(row_data_.end(), oneRow.begin(), oneRow.end());
   row_ptr_.push_back(row_ptr_.back() + oneRow.size());
   nrows_ = row_ptr_.size() - 1;
   return row_ptr_.size() - 2;
 }
-
 
 void miniXGBoost::data::SparseMatrix::translateToCSCFormat() {
 
@@ -48,9 +47,8 @@ void miniXGBoost::data::SparseMatrix::translateToCSCFormat() {
 
 
   //go through data again to push items in
-  for(size_t i = 0; i < nrows_; ++i){
-    auto end=cend(i);
-    for(auto iter = cbegin(i); iter!=end; ++iter){
+  for (size_t i = 0; i < nrows_; ++i) {
+    for (auto end = cend(i), iter = cbegin(i); iter != end; ++iter) {
       col_data_[col_ptr_[iter->index + 1]++] = Entry(i, iter->value);
     }
   }

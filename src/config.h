@@ -24,7 +24,7 @@ class ConfigParse {
   }
 
   void parse();
-  void assignParameters(miniXGBoost::ModelParam & param);
+  void assignParameters(miniXGBoost::ModelParam &param);
 
  private:
   std::ifstream fi_;
